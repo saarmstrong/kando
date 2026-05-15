@@ -3,6 +3,7 @@ import SwiftUI
 struct TaskCardView: View {
     let task: ReminderTask
     let allColumns: [KanbanColumn]
+    var wipAccentColor: Color? = nil
     let onEdit: () -> Void
     let onMove: (String) -> Void
     let onComplete: (Bool) -> Void
@@ -43,6 +44,10 @@ struct TaskCardView: View {
             }
             .padding(12)
             .background(Color.appCardBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(wipAccentColor ?? .clear, lineWidth: wipAccentColor == nil ? 0 : 2)
+            )
             .shadow(color: .black.opacity(0.06), radius: 5, y: 2)
         }
         .buttonStyle(.plain)

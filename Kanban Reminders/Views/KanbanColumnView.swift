@@ -16,11 +16,12 @@ struct KanbanColumnView: View {
                 Text(column.title)
                     .font(.headline)
                 Spacer()
-                Text("\(tasks.count)")
+                Text(countText)
                     .font(.caption)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
-                    .background(.thinMaterial, in: Capsule())
+                    .background(wipStatus.accentColor.opacity(wipStatus == .normal ? 0 : 0.18), in: Capsule())
+                    .foregroundStyle(wipStatus == .normal ? .secondary : wipStatus.accentColor)
             }
 
             Button(action: onAdd) {
@@ -34,6 +35,7 @@ struct KanbanColumnView: View {
                     TaskCardView(
                         task: task,
                         allColumns: allColumns,
+                        wipAccentColor: wipStatus == .normal ? nil : wipStatus.accentColor,
                         onEdit: { onEdit(task) },
                         onMove: { onMove(task, $0) },
                         onComplete: { onComplete(task, $0) }
@@ -54,6 +56,41 @@ struct KanbanColumnView: View {
     }
 
     private var columnBackground: Color {
-        column.title.localizedCaseInsensitiveContains("done") ? Color.green.opacity(0.12) : Color.appSecondaryGroupedBackground
+        if wipStatus != .normal {
+            return wipStatus.accentColor.opacity(0.12)
+        }
+        return column.title.localizedCaseInsensitiveContains("done") ? Color.green.opacity(0.12) : Color.appSecondaryGroupedBackground
+    }
+
+    private var activeTaskCount: Int {
+        tasks.filter { !$0.isCompleted }.count
+    }
+
+    private var countText: String {
+        if let limit = column.wipLimit {
+            return "\(activeTaskCount)/\(limit)"
+        }
+        return "\(tasks.count)"
+    }
+
+    private var wipStatus: WIPStatus {
+        guard let limit = column.wipLimit, limit > 0 else { return .normal }
+        if activeTaskCount >= limit { return .atLimit }
+        if activeTaskCount >= max(1, Int(ceil(Double(limit) * 0.8))) { return .nearLimit }
+        return .normal
+    }
+}
+
+private enum WIPStatus: Equatable {
+    case normal
+    case nearLimit
+    case atLimit
+
+    var accentColor: Color {
+        switch self {
+        case .normal: return .clear
+        case .nearLimit: return .orange
+        case .atLimit: return .red
+        }
     }
 }

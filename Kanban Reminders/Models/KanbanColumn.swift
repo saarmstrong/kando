@@ -8,6 +8,7 @@ struct KanbanColumn: Identifiable, Hashable, Codable {
     var id: String
     var title: String
     var backingReminderListName: String
+    var wipLimit: Int? = nil
 
     static let defaultKanban: [KanbanColumn] = [
         KanbanColumn(id: "backlog", title: "Backlog", backingReminderListName: "Kanban - Backlog"),
@@ -113,7 +114,8 @@ final class AppSettings: ObservableObject {
         return KanbanColumn(
             id: UUID().uuidString,
             title: cleanTitle,
-            backingReminderListName: "\(prefix) - \(cleanTitle) - \(UUID().uuidString.prefix(4))"
+            backingReminderListName: "\(prefix) - \(cleanTitle) - \(UUID().uuidString.prefix(4))",
+            wipLimit: nil
         )
     }
 

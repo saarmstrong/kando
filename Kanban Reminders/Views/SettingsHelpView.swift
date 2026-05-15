@@ -25,7 +25,7 @@ struct SettingsHelpView: View {
 
                 Section("Kanban Columns") {
                     ForEach($settings.kanbanColumns) { $column in
-                        TextField("Column name", text: $column.title)
+                        KanbanColumnSettingsRow(column: $column)
                     }
                     .onDelete(perform: settings.removeKanbanColumn)
 
@@ -72,5 +72,39 @@ struct SettingsHelpView: View {
             .toolbar { EditButton() }
             #endif
         }
+    }
+}
+
+private struct KanbanColumnSettingsRow: View {
+    @Binding var column: KanbanColumn
+    @State private var hasLimit: Bool
+    @State private var limit: Int
+
+    init(column: Binding<KanbanColumn>) {
+        _column = column
+        _hasLimit = State(initialValue: column.wrappedValue.wipLimit != nil)
+        _limit = State(initialValue: column.wrappedValue.wipLimit ?? 3)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            TextField("Column name", text: $column.title)
+
+            Toggle("WIP limit", isOn: $hasLimit)
+                .onChange(of: hasLimit) { _, enabled in
+                    column.wipLimit = enabled ? limit : nil
+                }
+
+            if hasLimit {
+                Stepper("Max active tasks: \(limit)", value: $limit, in: 1...99)
+                    .onChange(of: limit) { _, newValue in
+                        column.wipLimit = newValue
+                    }
+                Text("Column turns orange near the limit and red at or over the limit.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.vertical, 4)
     }
 }
