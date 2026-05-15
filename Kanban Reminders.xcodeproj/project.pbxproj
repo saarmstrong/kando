@@ -14,6 +14,7 @@
 		9C0D1A48E0CF453E9967E885 /* KanbanBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87ECAB5EB2FF43E5AB7233ED /* KanbanBoardView.swift */; };
 		ABECF09C6E7540CF818B1BEC /* SettingsHelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC6ED877F50B479FBBEC3EB5 /* SettingsHelpView.swift */; };
 		10175409FE924DB1A4BF1CF4 /* EisenhowerMatrixView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E936A8C0A474EACB4E248F7 /* EisenhowerMatrixView.swift */; };
+		CABE89F20EB941459BDFB29C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 82B09D32C05C443F9589AC99 /* Assets.xcassets */; };
 		B970A272390546128D7ABCCE /* ReminderTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 581A8E158A0942BE82936754 /* ReminderTask.swift */; };
 		BE296F37379D4CFBA937B8D8 /* ReminderStoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51E6A996538C4401B0AF535F /* ReminderStoreService.swift */; };
 		C637735E29234F148AC8B097 /* TaskEditorSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32226FC4C29A44D3A5EBA5E8 /* TaskEditorSheet.swift */; };
@@ -35,6 +36,7 @@
 		BC6ED877F50B479FBBEC3EB5 /* SettingsHelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsHelpView.swift; sourceTree = "<group>"; };
 		3E936A8C0A474EACB4E248F7 /* EisenhowerMatrixView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EisenhowerMatrixView.swift; sourceTree = "<group>"; };
 		DFBC513EBB7B40E9ACFD8353 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		82B09D32C05C443F9589AC99 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E96C92AE3F9B488FBCF64FDB /* PermissionDeniedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionDeniedView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -58,6 +60,7 @@
 				9399860CE2AD4AE6916670CA /* ViewModels */,
 				3107C8E11070469C9B1F155C /* Views */,
 				DFBC513EBB7B40E9ACFD8353 /* Info.plist */,
+				82B09D32C05C443F9589AC99 /* Assets.xcassets */,
 			);
 			path = "Kanban Reminders";
 			sourceTree = "<group>";
@@ -175,6 +178,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CABE89F20EB941459BDFB29C /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -206,6 +210,7 @@
 		2BC5A5CC42CF4BEF96D89D2C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 42P99ST2F8;
@@ -336,6 +341,7 @@
 		F6C7A072BE7C46448CD24692 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 42P99ST2F8;

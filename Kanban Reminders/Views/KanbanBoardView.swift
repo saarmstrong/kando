@@ -6,6 +6,8 @@ struct KanbanBoardView: View {
 
     @ObservedObject var viewModel: KanbanBoardViewModel
     @State private var editor: EditorState?
+    @State private var sortOption: TaskSortOption = .title
+    @State private var filterOption: TaskFilterOption = .all
 
     init(title: String = "Kanban", columns: [KanbanColumn] = KanbanColumn.defaultKanban, viewModel: KanbanBoardViewModel) {
         self.title = title
@@ -24,7 +26,8 @@ struct KanbanBoardView: View {
             }
             .navigationTitle(title)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    sortFilterMenu
                     Button {
                         if let first = viewModel.columns.first { editor = .new(first.id) }
                     } label: {
@@ -61,13 +64,35 @@ struct KanbanBoardView: View {
         }
     }
 
+    private var sortFilterMenu: some View {
+        Menu {
+            Picker("Filter", selection: $filterOption) {
+                ForEach(TaskFilterOption.allCases) { option in
+                    Text(option.title).tag(option)
+                }
+            }
+
+            Picker("Sort", selection: $sortOption) {
+                ForEach(TaskSortOption.allCases) { option in
+                    Text(option.title).tag(option)
+                }
+            }
+        } label: {
+            Label("Sort and Filter", systemImage: "line.3.horizontal.decrease.circle")
+        }
+    }
+
+    private func tasks(in columnId: String) -> [ReminderTask] {
+        viewModel.tasks(in: columnId).filteredAndSorted(filter: filterOption, sort: sortOption)
+    }
+
     private var board: some View {
         ScrollView(.horizontal) {
             HStack(alignment: .top, spacing: 16) {
                 ForEach(viewModel.columns) { column in
                     KanbanColumnView(
                         column: column,
-                        tasks: viewModel.tasks(in: column.id),
+                        tasks: tasks(in: column.id),
                         allColumns: viewModel.columns,
                         onAdd: { editor = .new(column.id) },
                         onEdit: { editor = .edit($0) },

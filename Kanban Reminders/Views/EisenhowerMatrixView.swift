@@ -4,6 +4,8 @@ struct EisenhowerMatrixView: View {
     @EnvironmentObject private var settings: AppSettings
     @ObservedObject var viewModel: KanbanBoardViewModel
     @State private var detailTask: ReminderTask?
+    @State private var sortOption: TaskSortOption = .priorityHighToLow
+    @State private var filterOption: TaskFilterOption = .all
 
     private let grid = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
 
@@ -18,7 +20,8 @@ struct EisenhowerMatrixView: View {
             }
             .navigationTitle("Matrix")
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    sortFilterMenu
                     Button { Task { await viewModel.load() } } label: {
                         Label("Refresh", systemImage: "arrow.clockwise")
                     }
@@ -41,6 +44,24 @@ struct EisenhowerMatrixView: View {
                     ProgressView("Loading Reminders…")
                 }
             }
+        }
+    }
+
+    private var sortFilterMenu: some View {
+        Menu {
+            Picker("Filter", selection: $filterOption) {
+                ForEach(TaskFilterOption.allCases) { option in
+                    Text(option.title).tag(option)
+                }
+            }
+
+            Picker("Sort", selection: $sortOption) {
+                ForEach(TaskSortOption.allCases) { option in
+                    Text(option.title).tag(option)
+                }
+            }
+        } label: {
+            Label("Sort and Filter", systemImage: "line.3.horizontal.decrease.circle")
         }
     }
 
@@ -68,7 +89,9 @@ struct EisenhowerMatrixView: View {
     }
 
     private func tasks(in quadrant: KanbanColumn) -> [ReminderTask] {
-        viewModel.tasks.filter { settings.quadrantId(for: $0) == quadrant.id }
+        viewModel.tasks
+            .filter { settings.quadrantId(for: $0) == quadrant.id }
+            .filteredAndSorted(filter: filterOption, sort: sortOption)
     }
 }
 
