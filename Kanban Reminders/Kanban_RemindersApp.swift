@@ -9,7 +9,14 @@ struct Kanban_RemindersApp: App {
             MainTabView()
                 .environmentObject(settings)
                 .preferredColorScheme(settings.colorMode.colorScheme)
+                #if os(macOS)
+                .frame(minWidth: 760, idealWidth: 1200, minHeight: 520, idealHeight: 800)
+                #endif
         }
+        #if os(macOS)
+        .defaultSize(width: 1200, height: 800)
+        .windowResizability(.automatic)
+        #endif
     }
 }
 

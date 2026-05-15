@@ -5,17 +5,18 @@ A simple SwiftUI iOS 17+ and macOS 14+ app that turns native Apple Reminders int
 ## What it does
 
 - Requests full Reminders access on first launch.
-- Creates or reuses three native Reminders lists:
-  - `Kanban - Backlog`
-  - `Kanban - Doing`
-  - `Kanban - Done`
+- Creates or reuses native Reminders lists with a Kando/Kanban prefix:
+  - `Kando - Kanban - Backlog`
+  - `Kando - Kanban - Doing`
+  - `Kando - Kanban - Done`
 - Shows reminders from those lists as cards in horizontal Kanban columns.
 - Includes an Eisenhower Matrix tab as another visual view of the same Kanban tasks.
 - Lets you create and edit title, notes, due date, priority, completion, and column/quadrant.
 - Moves cards with a long-press context menu or drag/drop.
 - Supports System, Light, and Dark appearance modes.
-- Lets you rename, add, and remove Kanban columns and Matrix quadrants in Settings.
+- Lets you rename, reorder, hide/show, color, add, and remove Kanban columns in Settings, and reorder columns directly on the board by dragging the column title handle.
 - Refreshes on pull-to-refresh.
+- Supports configurable WIP limits with visual warning colors as columns approach or reach capacity.
 
 ## Setup
 
@@ -45,6 +46,6 @@ This app does **not** implement its own cloud sync or database. Tasks are saved 
 
 The lightweight `ReminderTask` model is only a UI projection. Apple Reminders remains the source of truth.
 
-Column display names and Matrix quadrant names are app settings saved locally. The backing Apple Reminders list names are kept stable after creation so existing tasks do not disconnect when you rename a column.
+Column display names and Matrix quadrant names are app settings saved locally. The backing Apple Reminders list names use the `Kando - Kanban - ...` prefix and are kept stable after creation so existing tasks do not disconnect when you rename a column. Existing older lists such as `Kanban - Backlog` are renamed automatically when loaded.
 
-Matrix quadrant assignments are saved locally in app settings as an alternate view of the same native Reminders tasks. The Kanban list/status remains the source of truth for where the reminder is stored in Apple Reminders.
+Matrix quadrant assignments are saved locally in app settings as an alternate view of the same native Reminders tasks. The Kanban list/status remains the source of truth for where the reminder is stored in Apple Reminders, so tasks are not moved into separate Matrix Reminders lists.

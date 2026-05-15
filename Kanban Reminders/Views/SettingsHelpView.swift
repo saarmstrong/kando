@@ -25,32 +25,50 @@ struct SettingsHelpView: View {
 
                 Section("Kanban Columns") {
                     ForEach($settings.kanbanColumns) { $column in
-                        KanbanColumnSettingsRow(column: $column)
+                        KanbanColumnSettingsRow(
+                            column: $column,
+                            moveUp: { settings.moveKanbanColumnUp(id: column.id) },
+                            moveDown: { settings.moveKanbanColumnDown(id: column.id) },
+                            delete: { settings.removeKanbanColumn(id: column.id) }
+                        )
                     }
+                    .onMove(perform: settings.moveKanbanColumn)
                     .onDelete(perform: settings.removeKanbanColumn)
 
-                    HStack {
+                    VStack(alignment: .leading, spacing: 8) {
                         TextField("New column", text: $newKanbanColumn)
-                        Button("Add") {
-                            settings.addKanbanColumn(title: newKanbanColumn)
-                            newKanbanColumn = ""
+                            .onSubmit(addKanbanColumn)
+                        Button(action: addKanbanColumn) {
+                            Label("Add Column", systemImage: "plus")
                         }
+                        .buttonStyle(.borderedProminent)
                         .disabled(newKanbanColumn.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     }
                 }
 
                 Section("Eisenhower Matrix Quadrants") {
                     ForEach($settings.matrixQuadrants) { $quadrant in
-                        TextField("Quadrant name", text: $quadrant.title)
+                        HStack {
+                            TextField("Quadrant name", text: $quadrant.title)
+                            Button(role: .destructive) {
+                                settings.removeMatrixQuadrant(id: quadrant.id)
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                            .labelStyle(.iconOnly)
+                            .buttonStyle(.borderless)
+                            .disabled(settings.matrixQuadrants.count <= 1)
+                        }
                     }
                     .onDelete(perform: settings.removeMatrixQuadrant)
 
-                    HStack {
+                    VStack(alignment: .leading, spacing: 8) {
                         TextField("New quadrant", text: $newMatrixQuadrant)
-                        Button("Add") {
-                            settings.addMatrixQuadrant(title: newMatrixQuadrant)
-                            newMatrixQuadrant = ""
+                            .onSubmit(addMatrixQuadrant)
+                        Button(action: addMatrixQuadrant) {
+                            Label("Add Quadrant", systemImage: "plus")
                         }
+                        .buttonStyle(.borderedProminent)
                         .disabled(newMatrixQuadrant.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     }
                 }
@@ -67,11 +85,31 @@ struct SettingsHelpView: View {
                     Label("Drag cards between columns on supported devices.", systemImage: "rectangle.and.hand.point.up.left")
                 }
             }
+            #if os(macOS)
+            .formStyle(.grouped)
+            .padding(.horizontal, 28)
+            .padding(.vertical, 16)
+            .frame(maxWidth: 860, maxHeight: .infinity)
+            #endif
             .navigationTitle("Settings")
             #if os(iOS)
             .toolbar { EditButton() }
             #endif
         }
+    }
+
+    private func addKanbanColumn() {
+        let title = newKanbanColumn.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !title.isEmpty else { return }
+        settings.addKanbanColumn(title: title)
+        newKanbanColumn = ""
+    }
+
+    private func addMatrixQuadrant() {
+        let title = newMatrixQuadrant.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !title.isEmpty else { return }
+        settings.addMatrixQuadrant(title: title)
+        newMatrixQuadrant = ""
     }
 }
 
@@ -79,16 +117,52 @@ private struct KanbanColumnSettingsRow: View {
     @Binding var column: KanbanColumn
     @State private var hasLimit: Bool
     @State private var limit: Int
+    let moveUp: () -> Void
+    let moveDown: () -> Void
+    let delete: () -> Void
 
-    init(column: Binding<KanbanColumn>) {
+    init(column: Binding<KanbanColumn>, moveUp: @escaping () -> Void, moveDown: @escaping () -> Void, delete: @escaping () -> Void) {
         _column = column
         _hasLimit = State(initialValue: column.wrappedValue.wipLimit != nil)
         _limit = State(initialValue: column.wrappedValue.wipLimit ?? 3)
+        self.moveUp = moveUp
+        self.moveDown = moveDown
+        self.delete = delete
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             TextField("Column name", text: $column.title)
+
+            HStack {
+                Button { moveUp() } label: {
+                    Label("Move Up", systemImage: "chevron.up")
+                }
+                Button { moveDown() } label: {
+                    Label("Move Down", systemImage: "chevron.down")
+                }
+                Spacer()
+                Button(role: .destructive, action: delete) {
+                    Label("Delete", systemImage: "trash")
+                }
+            }
+            .buttonStyle(.borderless)
+            .labelStyle(.titleAndIcon)
+
+            Toggle("Show column on board", isOn: Binding(
+                get: { !column.isHidden },
+                set: { column.isHidden = !$0 }
+            ))
+
+            ColorPicker("Column color", selection: Binding(
+                get: { column.colorHex.map(Color.init(hex:)) ?? .blue },
+                set: { column.colorHex = $0.hexString }
+            ), supportsOpacity: false)
+
+            Button("Clear color") {
+                column.colorHex = nil
+            }
+            .disabled(column.colorHex == nil)
 
             Toggle("WIP limit", isOn: $hasLimit)
                 .onChange(of: hasLimit) { _, enabled in

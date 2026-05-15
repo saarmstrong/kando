@@ -131,6 +131,13 @@ final class ReminderStoreService {
                 continue
             }
 
+            if let legacyCalendar = existing.first(where: { legacyListNames(for: column).contains($0.title) }) {
+                legacyCalendar.title = column.backingReminderListName
+                try eventStore.saveCalendar(legacyCalendar, commit: true)
+                lists[column.id] = legacyCalendar
+                continue
+            }
+
             guard let source = writableReminderSource() else { throw ReminderStoreError.unsupportedCalendarSource }
             let calendar = EKCalendar(for: .reminder, eventStore: eventStore)
             calendar.title = column.backingReminderListName
@@ -140,6 +147,17 @@ final class ReminderStoreService {
         }
 
         return lists
+    }
+
+    private func legacyListNames(for column: KanbanColumn) -> [String] {
+        var names: [String] = []
+        let appPrefix = "\(KanbanColumn.appListPrefix) - "
+        if column.backingReminderListName.hasPrefix(appPrefix) {
+            names.append(String(column.backingReminderListName.dropFirst(appPrefix.count)))
+        }
+        names.append("Kanban - \(column.title)")
+        names.append("Matrix - \(column.title)")
+        return Array(Set(names))
     }
 
     private func writableReminderSource() -> EKSource? {

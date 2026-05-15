@@ -30,11 +30,11 @@ struct KanbanBoardView: View {
                 ToolbarItemGroup(placement: .automatic) {
                     sortFilterMenu
                     Button {
-                        if let first = viewModel.columns.first { editor = .new(first.id) }
+                        if let first = visibleColumns.first { editor = .new(first.id) }
                     } label: {
                         Label("Add Task", systemImage: "plus")
                     }
-                    .disabled(viewModel.columns.isEmpty)
+                    .disabled(visibleColumns.isEmpty)
                 }
             }
             .onAppear { viewModel.updateColumns(columns) }
@@ -90,9 +90,9 @@ struct KanbanBoardView: View {
     }
 
     private var board: some View {
-        ScrollView(.horizontal) {
+        ScrollView([.horizontal, .vertical]) {
             HStack(alignment: .top, spacing: 16) {
-                ForEach(viewModel.columns) { column in
+                ForEach(visibleColumns) { column in
                     KanbanColumnView(
                         column: column,
                         tasks: tasks(in: column.id),
@@ -101,13 +101,20 @@ struct KanbanBoardView: View {
                         onEdit: { editor = .edit($0) },
                         onMove: { task, target in Task { await viewModel.move(task, to: target) } },
                         onComplete: { task, completed in Task { await viewModel.setCompletion(task, isCompleted: completed) } },
-                        onDropIdentifier: { identifier in Task { await viewModel.move(identifier: identifier, to: column.id) } }
+                        onDropIdentifier: { identifier in
+                            Task { await viewModel.move(identifier: identifier, to: column.id) }
+                        }
                     )
                 }
             }
             .padding()
         }
+        .scrollIndicators(.visible)
         .background(Color.appGroupedBackground)
+    }
+
+    private var visibleColumns: [KanbanColumn] {
+        viewModel.columns.filter { !$0.isHidden }
     }
 }
 

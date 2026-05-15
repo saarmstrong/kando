@@ -35,7 +35,7 @@ struct KanbanColumnView: View {
                     TaskCardView(
                         task: task,
                         allColumns: allColumns,
-                        wipAccentColor: wipStatus == .normal ? nil : wipStatus.accentColor,
+                        wipAccentColor: wipStatus == .normal ? columnColor : wipStatus.accentColor,
                         onEdit: { onEdit(task) },
                         onMove: { onMove(task, $0) },
                         onComplete: { onComplete(task, $0) }
@@ -59,6 +59,9 @@ struct KanbanColumnView: View {
         if wipStatus != .normal {
             return wipStatus.accentColor.opacity(0.12)
         }
+        if let columnColor {
+            return columnColor.opacity(0.14)
+        }
         return column.title.localizedCaseInsensitiveContains("done") ? Color.green.opacity(0.12) : Color.appSecondaryGroupedBackground
     }
 
@@ -71,6 +74,10 @@ struct KanbanColumnView: View {
             return "\(activeTaskCount)/\(limit)"
         }
         return "\(tasks.count)"
+    }
+
+    private var columnColor: Color? {
+        column.colorHex.map(Color.init(hex:))
     }
 
     private var wipStatus: WIPStatus {
