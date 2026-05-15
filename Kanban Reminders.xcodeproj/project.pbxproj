@@ -7,17 +7,17 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		10175409FE924DB1A4BF1CF4 /* EisenhowerMatrixView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E936A8C0A474EACB4E248F7 /* EisenhowerMatrixView.swift */; };
 		16FCDCCD11664DF3AD125888 /* PermissionDeniedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E96C92AE3F9B488FBCF64FDB /* PermissionDeniedView.swift */; };
 		225CD0C382CF45A2AB262318 /* TaskCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7194187DFF08498BBCEE1C08 /* TaskCardView.swift */; };
 		3F030C53078C4467944E9A12 /* KanbanColumnView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9A4162314A249F2A1937FD9 /* KanbanColumnView.swift */; };
 		51F378469F5B48909301F378 /* KanbanBoardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AEC0BA56F754667838B3033 /* KanbanBoardViewModel.swift */; };
 		9C0D1A48E0CF453E9967E885 /* KanbanBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87ECAB5EB2FF43E5AB7233ED /* KanbanBoardView.swift */; };
 		ABECF09C6E7540CF818B1BEC /* SettingsHelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC6ED877F50B479FBBEC3EB5 /* SettingsHelpView.swift */; };
-		10175409FE924DB1A4BF1CF4 /* EisenhowerMatrixView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E936A8C0A474EACB4E248F7 /* EisenhowerMatrixView.swift */; };
-		CABE89F20EB941459BDFB29C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 82B09D32C05C443F9589AC99 /* Assets.xcassets */; };
 		B970A272390546128D7ABCCE /* ReminderTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 581A8E158A0942BE82936754 /* ReminderTask.swift */; };
 		BE296F37379D4CFBA937B8D8 /* ReminderStoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51E6A996538C4401B0AF535F /* ReminderStoreService.swift */; };
 		C637735E29234F148AC8B097 /* TaskEditorSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32226FC4C29A44D3A5EBA5E8 /* TaskEditorSheet.swift */; };
+		CABE89F20EB941459BDFB29C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 82B09D32C05C443F9589AC99 /* Assets.xcassets */; };
 		CD2F47760BBA43408C9BD2BA /* Kanban_RemindersApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADCA42F087104FDA9FFA69C9 /* Kanban_RemindersApp.swift */; };
 		E5E4A9D28B954A58AB019D61 /* KanbanColumn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94A96BF5421D4A4499636340 /* KanbanColumn.swift */; };
 /* End PBXBuildFile section */
@@ -25,18 +25,18 @@
 /* Begin PBXFileReference section */
 		2AEC0BA56F754667838B3033 /* KanbanBoardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KanbanBoardViewModel.swift; sourceTree = "<group>"; };
 		32226FC4C29A44D3A5EBA5E8 /* TaskEditorSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskEditorSheet.swift; sourceTree = "<group>"; };
+		3E936A8C0A474EACB4E248F7 /* EisenhowerMatrixView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EisenhowerMatrixView.swift; sourceTree = "<group>"; };
 		51E6A996538C4401B0AF535F /* ReminderStoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderStoreService.swift; sourceTree = "<group>"; };
 		581A8E158A0942BE82936754 /* ReminderTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderTask.swift; sourceTree = "<group>"; };
 		6089586531564548A07C6492 /* Kanban Reminders.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Kanban Reminders.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7194187DFF08498BBCEE1C08 /* TaskCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskCardView.swift; sourceTree = "<group>"; };
+		82B09D32C05C443F9589AC99 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		87ECAB5EB2FF43E5AB7233ED /* KanbanBoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KanbanBoardView.swift; sourceTree = "<group>"; };
 		94A96BF5421D4A4499636340 /* KanbanColumn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KanbanColumn.swift; sourceTree = "<group>"; };
 		A9A4162314A249F2A1937FD9 /* KanbanColumnView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KanbanColumnView.swift; sourceTree = "<group>"; };
 		ADCA42F087104FDA9FFA69C9 /* Kanban_RemindersApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Kanban_RemindersApp.swift; sourceTree = "<group>"; };
 		BC6ED877F50B479FBBEC3EB5 /* SettingsHelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsHelpView.swift; sourceTree = "<group>"; };
-		3E936A8C0A474EACB4E248F7 /* EisenhowerMatrixView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EisenhowerMatrixView.swift; sourceTree = "<group>"; };
 		DFBC513EBB7B40E9ACFD8353 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		82B09D32C05C443F9589AC99 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E96C92AE3F9B488FBCF64FDB /* PermissionDeniedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionDeniedView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -148,7 +148,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1540;
-				LastUpgradeCheck = 1540;
+				LastUpgradeCheck = 2610;
 				TargetAttributes = {
 					1B1D00DD8B744C49950D4B37 = {
 						CreatedOnToolsVersion = 15.4;
@@ -213,7 +213,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 42P99ST2F8;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "Kanban Reminders/Info.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business";
@@ -264,8 +263,10 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 42P99ST2F8;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -281,7 +282,9 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -321,8 +324,10 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 42P99ST2F8;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -333,6 +338,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -344,7 +350,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 42P99ST2F8;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "Kanban Reminders/Info.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business";
