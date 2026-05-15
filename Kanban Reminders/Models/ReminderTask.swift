@@ -7,7 +7,7 @@ struct ReminderTask: Identifiable, Hashable {
     var dueDate: Date?
     var priority: Int
     var isCompleted: Bool
-    var column: KanbanColumn.Kind
+    var columnId: String
 
     var id: String { reminderIdentifier }
 }

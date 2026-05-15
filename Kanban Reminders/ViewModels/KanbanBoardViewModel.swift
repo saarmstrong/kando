@@ -7,12 +7,18 @@ final class KanbanBoardViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     @Published var hasPermission = true
+    @Published var columns: [KanbanColumn]
 
-    let columns = KanbanColumn.allCases
     private let service: ReminderStoreService
 
-    init(service: ReminderStoreService = ReminderStoreService()) {
+    init(columns: [KanbanColumn] = KanbanColumn.defaultKanban, service: ReminderStoreService = ReminderStoreService()) {
+        self.columns = columns
         self.service = service
+    }
+
+    func updateColumns(_ columns: [KanbanColumn]) {
+        self.columns = columns
+        tasks.removeAll { task in !columns.contains(where: { $0.id == task.columnId }) }
     }
 
     func load() async {
@@ -23,22 +29,22 @@ final class KanbanBoardViewModel: ObservableObject {
         do {
             hasPermission = try await service.requestAccessIfNeeded()
             guard hasPermission else { return }
-            tasks = try await service.loadBoard()
+            tasks = try await service.loadBoard(columns: columns)
         } catch {
             errorMessage = error.localizedDescription
         }
     }
 
-    func tasks(in column: KanbanColumn.Kind) -> [ReminderTask] {
-        tasks.filter { $0.column == column }
+    func tasks(in columnId: String) -> [ReminderTask] {
+        tasks.filter { $0.columnId == columnId }
     }
 
     func saveTask(identifier: String?, draft: ReminderDraft) async {
         do {
             if let identifier {
-                _ = try await service.updateReminder(identifier: identifier, with: draft)
+                _ = try await service.updateReminder(identifier: identifier, with: draft, columns: columns)
             } else {
-                _ = try await service.createReminder(draft)
+                _ = try await service.createReminder(draft, columns: columns)
             }
             await load()
         } catch {
@@ -46,19 +52,19 @@ final class KanbanBoardViewModel: ObservableObject {
         }
     }
 
-    func move(_ task: ReminderTask, to column: KanbanColumn.Kind) async {
-        guard task.column != column else { return }
+    func move(_ task: ReminderTask, to columnId: String) async {
+        guard task.columnId != columnId else { return }
         do {
-            try await service.moveReminder(identifier: task.reminderIdentifier, to: column)
+            try await service.moveReminder(identifier: task.reminderIdentifier, to: columnId, columns: columns)
             await load()
         } catch {
             errorMessage = error.localizedDescription
         }
     }
 
-    func move(identifier: String, to column: KanbanColumn.Kind) async {
+    func move(identifier: String, to columnId: String) async {
         guard let task = tasks.first(where: { $0.reminderIdentifier == identifier }) else { return }
-        await move(task, to: column)
+        await move(task, to: columnId)
     }
 
     func setCompletion(_ task: ReminderTask, isCompleted: Bool) async {

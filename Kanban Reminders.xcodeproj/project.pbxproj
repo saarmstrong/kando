@@ -13,6 +13,7 @@
 		51F378469F5B48909301F378 /* KanbanBoardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AEC0BA56F754667838B3033 /* KanbanBoardViewModel.swift */; };
 		9C0D1A48E0CF453E9967E885 /* KanbanBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87ECAB5EB2FF43E5AB7233ED /* KanbanBoardView.swift */; };
 		ABECF09C6E7540CF818B1BEC /* SettingsHelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC6ED877F50B479FBBEC3EB5 /* SettingsHelpView.swift */; };
+		10175409FE924DB1A4BF1CF4 /* EisenhowerMatrixView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E936A8C0A474EACB4E248F7 /* EisenhowerMatrixView.swift */; };
 		B970A272390546128D7ABCCE /* ReminderTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 581A8E158A0942BE82936754 /* ReminderTask.swift */; };
 		BE296F37379D4CFBA937B8D8 /* ReminderStoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51E6A996538C4401B0AF535F /* ReminderStoreService.swift */; };
 		C637735E29234F148AC8B097 /* TaskEditorSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32226FC4C29A44D3A5EBA5E8 /* TaskEditorSheet.swift */; };
@@ -32,6 +33,7 @@
 		A9A4162314A249F2A1937FD9 /* KanbanColumnView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KanbanColumnView.swift; sourceTree = "<group>"; };
 		ADCA42F087104FDA9FFA69C9 /* Kanban_RemindersApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Kanban_RemindersApp.swift; sourceTree = "<group>"; };
 		BC6ED877F50B479FBBEC3EB5 /* SettingsHelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsHelpView.swift; sourceTree = "<group>"; };
+		3E936A8C0A474EACB4E248F7 /* EisenhowerMatrixView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EisenhowerMatrixView.swift; sourceTree = "<group>"; };
 		DFBC513EBB7B40E9ACFD8353 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E96C92AE3F9B488FBCF64FDB /* PermissionDeniedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionDeniedView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -77,6 +79,7 @@
 				32226FC4C29A44D3A5EBA5E8 /* TaskEditorSheet.swift */,
 				E96C92AE3F9B488FBCF64FDB /* PermissionDeniedView.swift */,
 				BC6ED877F50B479FBBEC3EB5 /* SettingsHelpView.swift */,
+				3E936A8C0A474EACB4E248F7 /* EisenhowerMatrixView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -193,6 +196,7 @@
 				C637735E29234F148AC8B097 /* TaskEditorSheet.swift in Sources */,
 				16FCDCCD11664DF3AD125888 /* PermissionDeniedView.swift in Sources */,
 				ABECF09C6E7540CF818B1BEC /* SettingsHelpView.swift in Sources */,
+				10175409FE924DB1A4BF1CF4 /* EisenhowerMatrixView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

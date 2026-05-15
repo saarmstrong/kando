@@ -4,7 +4,7 @@ struct TaskCardView: View {
     let task: ReminderTask
     let allColumns: [KanbanColumn]
     let onEdit: () -> Void
-    let onMove: (KanbanColumn.Kind) -> Void
+    let onMove: (String) -> Void
     let onComplete: (Bool) -> Void
 
     var body: some View {
@@ -50,8 +50,8 @@ struct TaskCardView: View {
             Button("Edit", systemImage: "pencil", action: onEdit)
             Menu("Move to…") {
                 ForEach(allColumns) { column in
-                    Button(column.title) { onMove(column.kind) }
-                        .disabled(column.kind == task.column)
+                    Button(column.title) { onMove(column.id) }
+                        .disabled(column.id == task.columnId)
                 }
             }
         }

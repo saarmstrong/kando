@@ -1,8 +1,17 @@
 import SwiftUI
 
 struct KanbanBoardView: View {
+    let title: String
+    let columns: [KanbanColumn]
+
     @ObservedObject var viewModel: KanbanBoardViewModel
     @State private var editor: EditorState?
+
+    init(title: String = "Kanban", columns: [KanbanColumn] = KanbanColumn.defaultKanban, viewModel: KanbanBoardViewModel) {
+        self.title = title
+        self.columns = columns
+        self.viewModel = viewModel
+    }
 
     var body: some View {
         NavigationStack {
@@ -13,22 +22,21 @@ struct KanbanBoardView: View {
                     PermissionDeniedView()
                 }
             }
-            .navigationTitle("Kanban Reminders")
+            .navigationTitle(title)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        editor = .new(.backlog)
+                        if let first = viewModel.columns.first { editor = .new(first.id) }
                     } label: {
                         Label("Add Task", systemImage: "plus")
                     }
+                    .disabled(viewModel.columns.isEmpty)
                 }
-                ToolbarItem(placement: .topBarLeading) {
-                    NavigationLink {
-                        SettingsHelpView()
-                    } label: {
-                        Image(systemName: "questionmark.circle")
-                    }
-                }
+            }
+            .onAppear { viewModel.updateColumns(columns) }
+            .onChange(of: columns) { _, newColumns in
+                viewModel.updateColumns(newColumns)
+                Task { await viewModel.load() }
             }
             .task { await viewModel.load() }
             .refreshable { await viewModel.load() }
@@ -59,13 +67,13 @@ struct KanbanBoardView: View {
                 ForEach(viewModel.columns) { column in
                     KanbanColumnView(
                         column: column,
-                        tasks: viewModel.tasks(in: column.kind),
+                        tasks: viewModel.tasks(in: column.id),
                         allColumns: viewModel.columns,
-                        onAdd: { editor = .new(column.kind) },
+                        onAdd: { editor = .new(column.id) },
                         onEdit: { editor = .edit($0) },
                         onMove: { task, target in Task { await viewModel.move(task, to: target) } },
                         onComplete: { task, completed in Task { await viewModel.setCompletion(task, isCompleted: completed) } },
-                        onDropIdentifier: { identifier in Task { await viewModel.move(identifier: identifier, to: column.kind) } }
+                        onDropIdentifier: { identifier in Task { await viewModel.move(identifier: identifier, to: column.id) } }
                     )
                 }
             }
@@ -76,12 +84,12 @@ struct KanbanBoardView: View {
 }
 
 enum EditorState: Identifiable {
-    case new(KanbanColumn.Kind)
+    case new(String)
     case edit(ReminderTask)
 
     var id: String {
         switch self {
-        case .new(let column): return "new-\(column.rawValue)"
+        case .new(let columnId): return "new-\(columnId)"
         case .edit(let task): return task.id
         }
     }

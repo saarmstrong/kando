@@ -6,7 +6,7 @@ struct KanbanColumnView: View {
     let allColumns: [KanbanColumn]
     let onAdd: () -> Void
     let onEdit: (ReminderTask) -> Void
-    let onMove: (ReminderTask, KanbanColumn.Kind) -> Void
+    let onMove: (ReminderTask, String) -> Void
     let onComplete: (ReminderTask, Bool) -> Void
     let onDropIdentifier: (String) -> Void
 
@@ -54,6 +54,6 @@ struct KanbanColumnView: View {
     }
 
     private var columnBackground: Color {
-        column.kind == .done ? Color.green.opacity(0.12) : Color(.secondarySystemGroupedBackground)
+        column.title.localizedCaseInsensitiveContains("done") ? Color.green.opacity(0.12) : Color(.secondarySystemGroupedBackground)
     }
 }

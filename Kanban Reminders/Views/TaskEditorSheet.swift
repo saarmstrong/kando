@@ -12,7 +12,7 @@ struct TaskEditorSheet: View {
     @State private var dueDate: Date
     @State private var priority: Int
     @State private var isCompleted: Bool
-    @State private var column: KanbanColumn.Kind
+    @State private var columnId: String
     @State private var isSaving = false
 
     init(state: EditorState, columns: [KanbanColumn], onSave: @escaping (String?, ReminderDraft) async -> Void) {
@@ -21,14 +21,14 @@ struct TaskEditorSheet: View {
         self.onSave = onSave
 
         switch state {
-        case .new(let column):
+        case .new(let columnId):
             _title = State(initialValue: "")
             _notes = State(initialValue: "")
             _hasDueDate = State(initialValue: false)
             _dueDate = State(initialValue: Date())
             _priority = State(initialValue: 0)
-            _isCompleted = State(initialValue: column == .done)
-            _column = State(initialValue: column)
+            _isCompleted = State(initialValue: false)
+            _columnId = State(initialValue: columnId)
         case .edit(let task):
             _title = State(initialValue: task.title)
             _notes = State(initialValue: task.notes ?? "")
@@ -36,7 +36,7 @@ struct TaskEditorSheet: View {
             _dueDate = State(initialValue: task.dueDate ?? Date())
             _priority = State(initialValue: task.priority)
             _isCompleted = State(initialValue: task.isCompleted)
-            _column = State(initialValue: task.column)
+            _columnId = State(initialValue: task.columnId)
         }
     }
 
@@ -50,9 +50,9 @@ struct TaskEditorSheet: View {
                 }
 
                 Section("Details") {
-                    Picker("Column", selection: $column) {
+                    Picker("Column", selection: $columnId) {
                         ForEach(columns) { column in
-                            Text(column.title).tag(column.kind)
+                            Text(column.title).tag(column.id)
                         }
                     }
 
@@ -81,7 +81,7 @@ struct TaskEditorSheet: View {
                     Button(isSaving ? "Saving…" : "Save") {
                         Task { await save() }
                     }
-                    .disabled(isSaving)
+                    .disabled(isSaving || title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
         }
@@ -94,14 +94,13 @@ struct TaskEditorSheet: View {
 
     private func save() async {
         isSaving = true
-        let selectedColumn: KanbanColumn.Kind = isCompleted ? .done : column
         let draft = ReminderDraft(
             title: title,
             notes: notes,
             dueDate: hasDueDate ? dueDate : nil,
             priority: priority,
             isCompleted: isCompleted,
-            column: selectedColumn
+            columnId: columnId
         )
         await onSave(identifier, draft)
         isSaving = false

@@ -9,14 +9,10 @@ enum ReminderStoreError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .accessDenied:
-            return "Kanban Reminders does not have access to Reminders."
-        case .listCreationFailed:
-            return "Could not create the Kanban Reminders lists."
-        case .reminderNotFound:
-            return "The reminder could not be found. It may have been deleted in Reminders."
-        case .unsupportedCalendarSource:
-            return "No writable Reminders account was found. Please enable Reminders in Settings."
+        case .accessDenied: return "Kanban Reminders does not have access to Reminders."
+        case .listCreationFailed: return "Could not create the Reminders lists."
+        case .reminderNotFound: return "The reminder could not be found. It may have been deleted in Reminders."
+        case .unsupportedCalendarSource: return "No writable Reminders account was found. Please enable Reminders in Settings."
         }
     }
 }
@@ -27,7 +23,7 @@ struct ReminderDraft: Equatable {
     var dueDate: Date?
     var priority: Int
     var isCompleted: Bool
-    var column: KanbanColumn.Kind
+    var columnId: String
 }
 
 final class ReminderStoreService {
@@ -40,11 +36,8 @@ final class ReminderStoreService {
         case .notDetermined:
             return try await withCheckedThrowingContinuation { continuation in
                 eventStore.requestFullAccessToReminders { granted, error in
-                    if let error {
-                        continuation.resume(throwing: error)
-                    } else {
-                        continuation.resume(returning: granted)
-                    }
+                    if let error { continuation.resume(throwing: error) }
+                    else { continuation.resume(returning: granted) }
                 }
             }
         case .denied, .restricted, .writeOnly:
@@ -54,15 +47,15 @@ final class ReminderStoreService {
         }
     }
 
-    func loadBoard() async throws -> [ReminderTask] {
+    func loadBoard(columns: [KanbanColumn]) async throws -> [ReminderTask] {
         guard try await requestAccessIfNeeded() else { throw ReminderStoreError.accessDenied }
-        let lists = try ensureKanbanLists()
+        let lists = try ensureLists(columns: columns)
 
         var loaded: [ReminderTask] = []
-        for column in KanbanColumn.allCases {
-            guard let calendar = lists[column.kind] else { continue }
+        for column in columns {
+            guard let calendar = lists[column.id] else { continue }
             let reminders = try await fetchReminders(in: calendar)
-            loaded.append(contentsOf: reminders.map { makeTask(from: $0, column: column.kind) })
+            loaded.append(contentsOf: reminders.map { makeTask(from: $0, column: column) })
         }
 
         return loaded.sorted { lhs, rhs in
@@ -72,43 +65,50 @@ final class ReminderStoreService {
     }
 
     @discardableResult
-    func createReminder(_ draft: ReminderDraft) async throws -> ReminderTask {
+    func createReminder(_ draft: ReminderDraft, columns: [KanbanColumn]) async throws -> ReminderTask {
         guard try await requestAccessIfNeeded() else { throw ReminderStoreError.accessDenied }
-        let lists = try ensureKanbanLists()
-        guard let calendar = lists[draft.column] else { throw ReminderStoreError.listCreationFailed }
+        let lists = try ensureLists(columns: columns)
+        guard let column = columns.first(where: { $0.id == draft.columnId }), let calendar = lists[draft.columnId] else {
+            throw ReminderStoreError.listCreationFailed
+        }
 
         let reminder = EKReminder(eventStore: eventStore)
         apply(draft: draft, to: reminder)
         reminder.calendar = calendar
         try eventStore.save(reminder, commit: true)
-        return makeTask(from: reminder, column: draft.column)
+        return makeTask(from: reminder, column: column)
     }
 
     @discardableResult
-    func updateReminder(identifier: String, with draft: ReminderDraft) async throws -> ReminderTask {
+    func updateReminder(identifier: String, with draft: ReminderDraft, columns: [KanbanColumn]) async throws -> ReminderTask {
         guard try await requestAccessIfNeeded() else { throw ReminderStoreError.accessDenied }
         guard let reminder = eventStore.calendarItem(withIdentifier: identifier) as? EKReminder else {
             throw ReminderStoreError.reminderNotFound
         }
-
-        let lists = try ensureKanbanLists()
-        guard let calendar = lists[draft.column] else { throw ReminderStoreError.listCreationFailed }
+        let lists = try ensureLists(columns: columns)
+        guard let column = columns.first(where: { $0.id == draft.columnId }), let calendar = lists[draft.columnId] else {
+            throw ReminderStoreError.listCreationFailed
+        }
 
         apply(draft: draft, to: reminder)
         reminder.calendar = calendar
         try eventStore.save(reminder, commit: true)
-        return makeTask(from: reminder, column: draft.column)
+        return makeTask(from: reminder, column: column)
     }
 
-    func moveReminder(identifier: String, to column: KanbanColumn.Kind) async throws {
+    func moveReminder(identifier: String, to columnId: String, columns: [KanbanColumn]) async throws {
         guard try await requestAccessIfNeeded() else { throw ReminderStoreError.accessDenied }
         guard let reminder = eventStore.calendarItem(withIdentifier: identifier) as? EKReminder else {
             throw ReminderStoreError.reminderNotFound
         }
-        let lists = try ensureKanbanLists()
-        guard let calendar = lists[column] else { throw ReminderStoreError.listCreationFailed }
+        let lists = try ensureLists(columns: columns)
+        guard let column = columns.first(where: { $0.id == columnId }), let calendar = lists[columnId] else {
+            throw ReminderStoreError.listCreationFailed
+        }
         reminder.calendar = calendar
-        reminder.isCompleted = column == .done
+        if column.title.localizedCaseInsensitiveContains("done") {
+            reminder.isCompleted = true
+        }
         try eventStore.save(reminder, commit: true)
     }
 
@@ -121,13 +121,13 @@ final class ReminderStoreService {
         try eventStore.save(reminder, commit: true)
     }
 
-    private func ensureKanbanLists() throws -> [KanbanColumn.Kind: EKCalendar] {
+    private func ensureLists(columns: [KanbanColumn]) throws -> [String: EKCalendar] {
         let existing = eventStore.calendars(for: .reminder)
-        var lists: [KanbanColumn.Kind: EKCalendar] = [:]
+        var lists: [String: EKCalendar] = [:]
 
-        for column in KanbanColumn.allCases {
+        for column in columns {
             if let calendar = existing.first(where: { $0.title == column.backingReminderListName }) {
-                lists[column.kind] = calendar
+                lists[column.id] = calendar
                 continue
             }
 
@@ -136,19 +136,15 @@ final class ReminderStoreService {
             calendar.title = column.backingReminderListName
             calendar.source = source
             try eventStore.saveCalendar(calendar, commit: true)
-            lists[column.kind] = calendar
+            lists[column.id] = calendar
         }
 
         return lists
     }
 
     private func writableReminderSource() -> EKSource? {
-        if let defaultSource = eventStore.defaultCalendarForNewReminders()?.source {
-            return defaultSource
-        }
-        return eventStore.sources.first { source in
-            source.sourceType == .calDAV || source.sourceType == .local || source.sourceType == .exchange
-        }
+        if let defaultSource = eventStore.defaultCalendarForNewReminders()?.source { return defaultSource }
+        return eventStore.sources.first { $0.sourceType == .calDAV || $0.sourceType == .local || $0.sourceType == .exchange }
     }
 
     private func fetchReminders(in calendar: EKCalendar) async throws -> [EKReminder] {
@@ -173,7 +169,7 @@ final class ReminderStoreService {
         }
     }
 
-    private func makeTask(from reminder: EKReminder, column: KanbanColumn.Kind) -> ReminderTask {
+    private func makeTask(from reminder: EKReminder, column: KanbanColumn) -> ReminderTask {
         ReminderTask(
             reminderIdentifier: reminder.calendarItemIdentifier,
             title: reminder.title ?? "Untitled Task",
@@ -181,7 +177,7 @@ final class ReminderStoreService {
             dueDate: reminder.dueDateComponents?.date,
             priority: reminder.priority,
             isCompleted: reminder.isCompleted,
-            column: column
+            columnId: column.id
         )
     }
 }
