@@ -4,6 +4,7 @@ struct KanbanBoardView: View {
     let title: String
     let columns: [KanbanColumn]
 
+    @EnvironmentObject private var settings: AppSettings
     @ObservedObject var viewModel: KanbanBoardViewModel
     @State private var editor: EditorState?
     @State private var sortOption: TaskSortOption = .title
@@ -83,7 +84,9 @@ struct KanbanBoardView: View {
     }
 
     private func tasks(in columnId: String) -> [ReminderTask] {
-        viewModel.tasks(in: columnId).filteredAndSorted(filter: filterOption, sort: sortOption)
+        viewModel.tasks(in: columnId)
+            .filter { !settings.hideCompletedTasks || !$0.isCompleted }
+            .filteredAndSorted(filter: filterOption, sort: sortOption)
     }
 
     private var board: some View {

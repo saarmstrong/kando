@@ -75,6 +75,7 @@ struct EisenhowerMatrixView: View {
                         allQuadrants: settings.matrixQuadrants,
                         onLongPress: { detailTask = $0 },
                         onMove: { task, quadrantId in settings.assign(task, to: quadrantId) },
+                        onComplete: { task, completed in Task { await viewModel.setCompletion(task, isCompleted: completed) } },
                         onDropIdentifier: { identifier in
                             if let task = viewModel.tasks.first(where: { $0.reminderIdentifier == identifier }) {
                                 settings.assign(task, to: quadrant.id)
@@ -89,7 +90,10 @@ struct EisenhowerMatrixView: View {
     }
 
     private func tasks(in quadrant: KanbanColumn) -> [ReminderTask] {
+        // The Matrix is an active-planning view, not a completion column.
+        // Completed tasks are moved to Done on the Kanban board and hidden here.
         viewModel.tasks
+            .filter { !$0.isCompleted }
             .filter { settings.quadrantId(for: $0) == quadrant.id }
             .filteredAndSorted(filter: filterOption, sort: sortOption)
     }
@@ -101,6 +105,7 @@ struct MatrixQuadrantView: View {
     let allQuadrants: [KanbanColumn]
     let onLongPress: (ReminderTask) -> Void
     let onMove: (ReminderTask, String) -> Void
+    let onComplete: (ReminderTask, Bool) -> Void
     let onDropIdentifier: (String) -> Void
 
     var body: some View {
@@ -126,7 +131,9 @@ struct MatrixQuadrantView: View {
             } else {
                 LazyVStack(spacing: 8) {
                     ForEach(tasks) { task in
-                        MatrixTaskSummaryCard(task: task)
+                        MatrixTaskSummaryCard(task: task) {
+                            onComplete(task, !task.isCompleted)
+                        }
                             .draggable(task.reminderIdentifier)
                             .onLongPressGesture { onLongPress(task) }
                             .contextMenu {
@@ -159,13 +166,19 @@ struct MatrixQuadrantView: View {
 
 struct MatrixTaskSummaryCard: View {
     let task: ReminderTask
+    let onComplete: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
             HStack(spacing: 5) {
-                Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(task.isCompleted ? .green : .secondary)
-                    .font(.caption)
+                Button(action: onComplete) {
+                    Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
+                        .foregroundStyle(task.isCompleted ? .green : .secondary)
+                        .font(.caption)
+                }
+                .buttonStyle(.plain)
+                .help(task.isCompleted ? "Mark incomplete" : "Mark complete")
+
                 Text(task.title)
                     .font(.caption.weight(.semibold))
                     .lineLimit(2)

@@ -16,6 +16,13 @@ struct SettingsHelpView: View {
                     }
                 }
 
+                Section("Task Display") {
+                    Toggle("Hide completed tasks", isOn: $settings.hideCompletedTasks)
+                    Text("Completed tasks are always hidden from the Matrix view. This setting also hides them from the Kanban board, including Done.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
                 Section("Kanban Columns") {
                     ForEach($settings.kanbanColumns) { $column in
                         TextField("Column name", text: $column.title)

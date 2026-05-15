@@ -53,12 +53,14 @@ final class AppSettings: ObservableObject {
     @Published var kanbanColumns: [KanbanColumn] = KanbanColumn.defaultKanban { didSet { save() } }
     @Published var matrixQuadrants: [KanbanColumn] = KanbanColumn.defaultMatrix { didSet { save() } }
     @Published var matrixAssignments: [String: String] = [:] { didSet { save() } }
+    @Published var hideCompletedTasks: Bool = false { didSet { save() } }
 
     private let defaults = UserDefaults.standard
     private let colorModeKey = "colorMode"
     private let kanbanColumnsKey = "kanbanColumns"
     private let matrixQuadrantsKey = "matrixQuadrants"
     private let matrixAssignmentsKey = "matrixAssignments"
+    private let hideCompletedTasksKey = "hideCompletedTasks"
 
     init() {
         load()
@@ -128,6 +130,7 @@ final class AppSettings: ObservableObject {
         if let decoded = defaults.dictionary(forKey: matrixAssignmentsKey) as? [String: String] {
             matrixAssignments = decoded
         }
+        hideCompletedTasks = defaults.bool(forKey: hideCompletedTasksKey)
     }
 
     private func save() {
@@ -139,6 +142,7 @@ final class AppSettings: ObservableObject {
             defaults.set(data, forKey: matrixQuadrantsKey)
         }
         defaults.set(matrixAssignments, forKey: matrixAssignmentsKey)
+        defaults.set(hideCompletedTasks, forKey: hideCompletedTasksKey)
     }
 }
 

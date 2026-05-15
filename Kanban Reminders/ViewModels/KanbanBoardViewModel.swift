@@ -41,10 +41,11 @@ final class KanbanBoardViewModel: ObservableObject {
 
     func saveTask(identifier: String?, draft: ReminderDraft) async {
         do {
+            let normalizedDraft = normalizedDraftForCompletion(draft)
             if let identifier {
-                _ = try await service.updateReminder(identifier: identifier, with: draft, columns: columns)
+                _ = try await service.updateReminder(identifier: identifier, with: normalizedDraft, columns: columns)
             } else {
-                _ = try await service.createReminder(draft, columns: columns)
+                _ = try await service.createReminder(normalizedDraft, columns: columns)
             }
             await load()
         } catch {
@@ -69,11 +70,49 @@ final class KanbanBoardViewModel: ObservableObject {
 
     func setCompletion(_ task: ReminderTask, isCompleted: Bool) async {
         do {
-            try await service.setCompletion(identifier: task.reminderIdentifier, isCompleted: isCompleted)
+            if isCompleted, let doneColumn = doneColumn {
+                // Completing a reminder should also move it to the Done Kanban list so
+                // Apple Reminders and the board stay in sync.
+                try await service.moveReminder(identifier: task.reminderIdentifier, to: doneColumn.id, columns: columns)
+            } else {
+                try await service.setCompletion(identifier: task.reminderIdentifier, isCompleted: isCompleted)
+
+                // If a task is uncompleted while it is in Done, place it back into the
+                // first non-Done column instead of leaving it visually completed.
+                if !isCompleted, isDoneColumnId(task.columnId), let fallbackColumn = firstNonDoneColumn {
+                    try await service.moveReminder(identifier: task.reminderIdentifier, to: fallbackColumn.id, columns: columns)
+                }
+            }
             await load()
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    private var doneColumn: KanbanColumn? {
+        columns.first { isDoneColumn($0) }
+    }
+
+    private var firstNonDoneColumn: KanbanColumn? {
+        columns.first { !isDoneColumn($0) }
+    }
+
+    private func normalizedDraftForCompletion(_ draft: ReminderDraft) -> ReminderDraft {
+        var normalized = draft
+        if draft.isCompleted, let doneColumn {
+            normalized.columnId = doneColumn.id
+        } else if !draft.isCompleted, isDoneColumnId(draft.columnId), let firstNonDoneColumn {
+            normalized.columnId = firstNonDoneColumn.id
+        }
+        return normalized
+    }
+
+    private func isDoneColumnId(_ columnId: String) -> Bool {
+        columns.first(where: { $0.id == columnId }).map(isDoneColumn) ?? false
+    }
+
+    private func isDoneColumn(_ column: KanbanColumn) -> Bool {
+        column.id.localizedCaseInsensitiveContains("done") || column.title.localizedCaseInsensitiveContains("done")
     }
 
     func clearError() {
