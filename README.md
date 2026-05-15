@@ -26,6 +26,19 @@ A simple SwiftUI iOS 17+ and macOS 14+ app that turns native Apple Reminders int
 
 The project includes the required Reminders privacy usage strings in `Kanban Reminders/Info.plist`. The same SwiftUI target supports iPhone, iPad, and native macOS with shared EventKit/iCloud Reminders data.
 
+## Tests
+
+The project includes an XCTest unit test target, `Kanban RemindersTests`, and an Xcode test plan, `Kanban Reminders.xctestplan`, attached to the shared `Kanban Reminders` scheme.
+
+Current tests cover task sorting and filtering behavior for priority and due dates. The same tests run on macOS and iOS Simulator.
+
+Run tests in Xcode with Product → Test, or from the command line:
+
+```bash
+xcodebuild -project "Kanban Reminders.xcodeproj" -scheme "Kanban Reminders" -sdk macosx test
+xcodebuild -project "Kanban Reminders.xcodeproj" -scheme "Kanban Reminders" -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17 Pro' test
+```
+
 ## Sync and limitations
 
 This app does **not** implement its own cloud sync or database. Tasks are saved as native Apple Reminders via EventKit. Sync happens through the user's Apple Reminders/iCloud configuration. If iCloud Reminders is disabled, tasks remain in the configured local or account-backed Reminders store.

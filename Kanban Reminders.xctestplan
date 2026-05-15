@@ -1,0 +1,29 @@
+{
+  "configurations" : [
+    {
+      "id" : "3F7C3E2B-3B30-46B9-9C60-AE45C0ECA30A",
+      "name" : "Default Options",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : false,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:Kanban Reminders.xcodeproj",
+      "identifier" : "1B1D00DD8B744C49950D4B37",
+      "name" : "Kanban Reminders"
+    }
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:Kanban Reminders.xcodeproj",
+        "identifier" : "B0E784AB7E774A5894EBC153",
+        "name" : "Kanban RemindersTests"
+      }
+    }
+  ],
+  "version" : 1
+}
