@@ -61,7 +61,9 @@ struct SettingsHelpView: View {
                 }
             }
             .navigationTitle("Settings")
+            #if os(iOS)
             .toolbar { EditButton() }
+            #endif
         }
     }
 }

@@ -54,6 +54,6 @@ struct KanbanColumnView: View {
     }
 
     private var columnBackground: Color {
-        column.title.localizedCaseInsensitiveContains("done") ? Color.green.opacity(0.12) : Color(.secondarySystemGroupedBackground)
+        column.title.localizedCaseInsensitiveContains("done") ? Color.green.opacity(0.12) : Color.appSecondaryGroupedBackground
     }
 }

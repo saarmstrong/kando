@@ -42,7 +42,7 @@ struct TaskCardView: View {
                 }
             }
             .padding(12)
-            .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .background(Color.appCardBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             .shadow(color: .black.opacity(0.06), radius: 5, y: 2)
         }
         .buttonStyle(.plain)

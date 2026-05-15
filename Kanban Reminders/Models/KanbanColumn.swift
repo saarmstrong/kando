@@ -1,5 +1,8 @@
 import Foundation
 import SwiftUI
+#if os(macOS)
+import AppKit
+#endif
 
 struct KanbanColumn: Identifiable, Hashable, Codable {
     var id: String
@@ -142,5 +145,37 @@ final class AppSettings: ObservableObject {
 private extension Array {
     subscript(safe index: Int) -> Element? {
         indices.contains(index) ? self[index] : nil
+    }
+}
+
+extension Color {
+    static var appGroupedBackground: Color {
+        #if os(iOS)
+        Color(.systemGroupedBackground)
+        #elseif os(macOS)
+        Color(NSColor.windowBackgroundColor)
+        #else
+        Color(.background)
+        #endif
+    }
+
+    static var appSecondaryGroupedBackground: Color {
+        #if os(iOS)
+        Color(.secondarySystemGroupedBackground)
+        #elseif os(macOS)
+        Color(NSColor.controlBackgroundColor)
+        #else
+        Color(.secondary)
+        #endif
+    }
+
+    static var appCardBackground: Color {
+        #if os(iOS)
+        Color(.systemBackground)
+        #elseif os(macOS)
+        Color(NSColor.textBackgroundColor)
+        #else
+        Color(.background)
+        #endif
     }
 }

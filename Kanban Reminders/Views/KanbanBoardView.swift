@@ -26,7 +26,7 @@ struct KanbanBoardView: View {
             }
             .navigationTitle(title)
             .toolbar {
-                ToolbarItemGroup(placement: .topBarTrailing) {
+                ToolbarItemGroup(placement: .automatic) {
                     sortFilterMenu
                     Button {
                         if let first = viewModel.columns.first { editor = .new(first.id) }
@@ -104,7 +104,7 @@ struct KanbanBoardView: View {
             }
             .padding()
         }
-        .background(Color(.systemGroupedBackground))
+        .background(Color.appGroupedBackground)
     }
 }
 

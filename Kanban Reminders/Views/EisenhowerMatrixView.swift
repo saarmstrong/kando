@@ -20,7 +20,7 @@ struct EisenhowerMatrixView: View {
             }
             .navigationTitle("Matrix")
             .toolbar {
-                ToolbarItemGroup(placement: .topBarTrailing) {
+                ToolbarItemGroup(placement: .automatic) {
                     sortFilterMenu
                     Button { Task { await viewModel.load() } } label: {
                         Label("Refresh", systemImage: "arrow.clockwise")
@@ -85,7 +85,7 @@ struct EisenhowerMatrixView: View {
             }
             .padding()
         }
-        .background(Color(.systemGroupedBackground))
+        .background(Color.appGroupedBackground)
     }
 
     private func tasks(in quadrant: KanbanColumn) -> [ReminderTask] {
@@ -145,7 +145,7 @@ struct MatrixQuadrantView: View {
         }
         .padding(10)
         .frame(minHeight: 250, alignment: .top)
-        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background(Color.appSecondaryGroupedBackground, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .strokeBorder(Color.secondary.opacity(0.25), lineWidth: 1)
@@ -186,7 +186,7 @@ struct MatrixTaskSummaryCard: View {
         }
         .padding(8)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .background(Color.appCardBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 
     private var priorityLabel: String {
@@ -238,7 +238,9 @@ struct MatrixTaskDetailView: View {
                 }
             }
             .navigationTitle("Task Details")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }

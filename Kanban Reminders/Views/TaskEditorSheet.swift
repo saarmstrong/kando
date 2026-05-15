@@ -72,7 +72,9 @@ struct TaskEditorSheet: View {
                 }
             }
             .navigationTitle(identifier == nil ? "New Task" : "Edit Task")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
