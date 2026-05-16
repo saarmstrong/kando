@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kando — Kanban Reminders</title>
+  <meta name="description" content="A tiny, free Kanban board for Apple Reminders. Built for personal sanity, not startup scale.">
+  <link rel="icon" href="assets/kando-icon.png">
+  <link rel="apple-touch-icon" href="assets/kando-icon.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="page">
+    <nav>
+      <a class="brand" href="index.html">
+        <img class="logo" src="assets/kando-icon.png" alt="Kando app icon">
+        <span>Kando / Kanban Reminders</span>
+      </a>
+      <div class="links">
+        <a href="privacy.html">Privacy</a>
+        <a href="support.html">Support</a>
+        <a href="https://github.com/">GitHub</a>
+      </div>
+    </nav>
+
+    <section class="hero">
+      <div class="card">
+        <h1>Organize your chaos. Barely.</h1>
+        <p class="lede">A tiny, free Kanban board for Apple Reminders. Built for personal sanity, not startup scale.</p>
+        <p>Kando turns your native Apple Reminders lists into a simple Kanban-style task board, with an optional Eisenhower Matrix view for pretending you are prioritizing like a responsible adult.</p>
+        <div class="badges">
+          <span class="badge">Free</span>
+          <span class="badge">iOS + macOS</span>
+          <span class="badge">Apple Reminders</span>
+          <span class="badge">No backend</span>
+        </div>
+        <p class="notice">Minimal, personal-use software. If it helps, excellent. If not, at least it did not ask for venture funding.</p>
+      </div>
+
+      <div class="card mock-board" aria-label="Kanban board illustration">
+        <div class="column"><strong>Backlog</strong><div class="task">Overthink simple task</div><div class="task">Add due date, probably</div></div>
+        <div class="column"><strong>Doing</strong><div class="task">Pretend WIP limits are discipline</div></div>
+        <div class="column"><strong>Done</strong><div class="task">Check something off 🎉</div></div>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top: 24px;">
+      <h2>What it does</h2>
+      <p>It stores tasks as real Apple Reminders, so your tasks stay in Apple’s ecosystem and sync through your existing Reminders/iCloud setup. No accounts, no custom backend, no “productivity platform,” no mysterious cloud database eating your todo list.</p>
+      <ul>
+        <li>Kanban board backed by Apple Reminders.</li>
+        <li>Backlog, Doing, and Done-style columns.</li>
+        <li>Customizable columns with colors, visibility, order, and WIP limits.</li>
+        <li>Optional Eisenhower Matrix view of the same tasks.</li>
+        <li>Task editing for title, notes, due date, priority, and completion.</li>
+        <li>Light, dark, and system appearance modes.</li>
+        <li>Native iOS and macOS support.</li>
+        <li>Free, because apparently some software can just be chill.</li>
+      </ul>
+    </section>
+
+    <section class="card" style="margin-top: 24px;">
+      <h2>Setup notes from the README</h2>
+      <p>The app creates or reuses native Reminders lists with names like <code>Kando - Kanban - Backlog</code>, <code>Kando - Kanban - Doing</code>, and <code>Kando - Kanban - Done</code>.</p>
+      <p>This app does <strong>not</strong> implement its own cloud sync or database. Tasks are saved as native Apple Reminders via EventKit. Sync happens through your Apple Reminders/iCloud configuration. If iCloud Reminders is disabled, tasks remain in the configured local or account-backed Reminders store.</p>
+      <p>Matrix quadrant assignments are local app settings and are an alternate view of the same native Reminders tasks. The Kanban list/status remains the source of truth for where the reminder is stored in Apple Reminders.</p>
+    </section>
+
+    <section class="card" style="margin-top: 24px;">
+      <h2>The tiny disclaimer parade</h2>
+      <p>This app is minimal and was made primarily for my own personal use. It is provided as-is, with absolutely no grand promises, guarantees, or solemn oaths that it will work perfectly for your workflow, device, iCloud mood, or general life situation.</p>
+      <p>Use it if it helps. Ignore it if it does not. Either way, the price is hard to beat.</p>
+    </section>
+
+    <footer>
+      <p>© Kando / Kanban Reminders. Very free. Extremely not enterprise.</p>
+    </footer>
+  </main>
+</body>
+</html>

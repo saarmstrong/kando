@@ -2,6 +2,16 @@
 
 A simple SwiftUI iOS 17+ and macOS 14+ app that turns native Apple Reminders into a lightweight Kanban board.
 
+## GitHub Pages
+
+Static pages for App Store/support links live in `docs/` and can be hosted with GitHub Pages:
+
+- `docs/index.html` — landing page
+- `docs/privacy.html` — privacy policy
+- `docs/support.html` — support page
+
+In GitHub, enable Pages from **Settings → Pages → Deploy from a branch**, then choose the `docs/` folder.
+
 ## What it does
 
 - Requests full Reminders access on first launch.
@@ -22,7 +32,7 @@ A simple SwiftUI iOS 17+ and macOS 14+ app that turns native Apple Reminders int
 
 1. Open `Kanban Reminders.xcodeproj` in Xcode 15+.
 2. Select the `Kanban Reminders` target.
-3. Set your development team and bundle identifier if you want to run on a physical device or distribute the Mac app.
+3. Set your development team and replace the example bundle identifier with your own if you want to run on a physical device or distribute/archive the app.
 4. Build and run on iOS 17 or newer, or choose **My Mac** as the run destination for the native macOS 14+ app.
 
 The project includes the required Reminders privacy usage strings in `Kanban Reminders/Info.plist`. The same SwiftUI target supports iPhone, iPad, and native macOS with shared EventKit/iCloud Reminders data.

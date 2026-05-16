@@ -103,7 +103,7 @@
       "size": "83.5x83.5"
     },
     {
-      "filename": "AppIcon-1024.png",
+      "filename": "AppIcon-Marketing.png",
       "idiom": "ios-marketing",
       "scale": "1x",
       "size": "1024x1024"
@@ -163,7 +163,7 @@
       "size": "512x512"
     },
     {
-      "filename": "AppIcon-1024.png",
+      "filename": "AppIcon-Mac-1024.png",
       "idiom": "mac",
       "scale": "2x",
       "size": "512x512"

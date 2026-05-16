@@ -1,1 +1,39 @@
+# Local agent/project notes
 CLAUDE.md
+
+# macOS Finder metadata
+.DS_Store
+**/.DS_Store
+
+# Xcode user-specific state
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+*.moved-aside
+xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+
+# Xcode build products and archives
+DerivedData/
+build/
+Build/
+*.xcarchive
+*.ipa
+*.dSYM
+
+# Swift Package Manager local state
+.swiftpm/
+.build/
+Package.resolved.backup
+
+# Local signing/build settings, if you add them later
+Local.xcconfig
+*.local.xcconfig
+
+# Fastlane/App Store Connect credentials, if added later
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output/
+AuthKey_*.p8
