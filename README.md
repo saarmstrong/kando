@@ -58,6 +58,12 @@ xcodebuild -project "Kanban Reminders.xcodeproj" -scheme "Kanban Reminders" -sdk
 xcodebuild -project "Kanban Reminders.xcodeproj" -scheme "Kanban Reminders" -sdk macosx test -skip-testing:"Kanban RemindersUITests" CODE_SIGNING_ALLOWED=NO
 ```
 
+## License
+
+This project is released under the MIT License. You are welcome to fork it, modify it, build on it, and redistribute it. Please keep the copyright notice and license text with copies or substantial portions of the project so attribution stays intact.
+
+See [`LICENSE`](LICENSE) for the full license text.
+
 ## Sync and limitations
 
 This app does **not** implement its own cloud sync or database. Tasks are saved as native Apple Reminders via EventKit. Sync happens through the user's Apple Reminders/iCloud configuration. If iCloud Reminders is disabled, tasks remain in the configured local or account-backed Reminders store.
