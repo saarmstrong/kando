@@ -95,6 +95,7 @@ final class AppSettings: ObservableObject {
     private let hideCompletedTasksKey = "hideCompletedTasks"
 
     init() {
+        #if DEBUG
         if ProcessInfo.processInfo.environment["KANDO_UI_TESTING"] == "1" || ProcessInfo.processInfo.arguments.contains("-KANDO_UI_TESTING") {
             colorMode = .system
             kanbanColumns = KanbanColumn.defaultKanban
@@ -104,6 +105,9 @@ final class AppSettings: ObservableObject {
         } else {
             load()
         }
+        #else
+        load()
+        #endif
     }
 
     func addKanbanColumn(title: String) {

@@ -25,31 +25,28 @@ struct ReminderTask: Identifiable, Hashable {
 enum ReminderContentCodec {
     static let commentsHeader = "---\nKando Comments (Markdown):"
     static let metadataHeader = "---\nKando Metadata:"
+    private static let metadataPrefix = "<!-- kando:metadata "
+    private static let metadataSuffix = " -->"
     private static let matrixKey = "matrixQuadrantId"
 
     static func splitNotesAndComments(_ rawNotes: String?) -> (notes: String?, commentsMarkdown: String?, matrixQuadrantId: String?) {
         guard var rawNotes, !rawNotes.isEmpty else { return (nil, nil, nil) }
 
-        let matrixQuadrantId: String?
-        if let metadataRange = rawNotes.range(of: sectionSeparator + metadataHeader + "\n") ?? rawNotes.range(of: metadataHeader + "\n") {
-            let metadata = String(rawNotes[metadataRange.upperBound...])
-            matrixQuadrantId = metadata
+        let metadata = extractMetadata(from: rawNotes)
+        if let metadataRange = metadata.range {
+            rawNotes = String(rawNotes[..<metadataRange.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+        } else if let legacyRange = rawNotes.range(of: sectionSeparator + metadataHeader + "\n") ?? rawNotes.range(of: metadataHeader + "\n") {
+            let legacyMetadata = String(rawNotes[legacyRange.upperBound...])
+            rawNotes = String(rawNotes[..<legacyRange.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+            let legacyQuadrantId = legacyMetadata
                 .split(separator: "\n")
                 .first { $0.hasPrefix("\(matrixKey):") }
                 .map { String($0.dropFirst("\(matrixKey):".count)).trimmingCharacters(in: .whitespacesAndNewlines) }
                 .flatMap { $0.nilIfEmpty }
-            rawNotes = String(rawNotes[..<metadataRange.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
-        } else {
-            matrixQuadrantId = nil
+            return splitNotesAndComments(rawNotes, matrixQuadrantId: legacyQuadrantId)
         }
 
-        guard let range = rawNotes.range(of: sectionSeparator + commentsHeader + "\n") ?? rawNotes.range(of: commentsHeader + "\n") else {
-            return (rawNotes.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty, nil, matrixQuadrantId)
-        }
-
-        let plainNotes = String(rawNotes[..<range.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
-        let comments = String(rawNotes[range.upperBound...]).trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
-        return (plainNotes, comments, matrixQuadrantId)
+        return splitNotesAndComments(rawNotes, matrixQuadrantId: metadata.matrixQuadrantId)
     }
 
     static func combinedNotes(notes: String?, commentsMarkdown: String?, matrixQuadrantId: String?) -> String? {
@@ -60,8 +57,44 @@ enum ReminderContentCodec {
         var sections: [String] = []
         if let cleanNotes { sections.append(cleanNotes) }
         if let cleanComments { sections.append("\(commentsHeader)\n\(cleanComments)") }
-        if let cleanMatrix { sections.append("\(metadataHeader)\n\(matrixKey): \(cleanMatrix)") }
+        if let cleanMatrix, let metadata = encodedMetadata(matrixQuadrantId: cleanMatrix) {
+            sections.append(metadata)
+        }
         return sections.isEmpty ? nil : sections.joined(separator: sectionSeparator)
+    }
+
+    private static func splitNotesAndComments(_ notes: String, matrixQuadrantId: String?) -> (notes: String?, commentsMarkdown: String?, matrixQuadrantId: String?) {
+        guard let range = notes.range(of: sectionSeparator + commentsHeader + "\n") ?? notes.range(of: commentsHeader + "\n") else {
+            return (notes.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty, nil, matrixQuadrantId)
+        }
+
+        let plainNotes = String(notes[..<range.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+        let comments = String(notes[range.upperBound...]).trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+        return (plainNotes, comments, matrixQuadrantId)
+    }
+
+    private static func extractMetadata(from notes: String) -> (range: Range<String.Index>?, matrixQuadrantId: String?) {
+        guard let start = notes.range(of: metadataPrefix),
+              let end = notes[start.upperBound...].range(of: metadataSuffix) else {
+            return (nil, nil)
+        }
+
+        let jsonText = String(notes[start.upperBound..<end.lowerBound])
+        let quadrantId: String?
+        if let data = jsonText.data(using: .utf8),
+           let object = try? JSONSerialization.jsonObject(with: data) as? [String: String] {
+            quadrantId = object[matrixKey]?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+        } else {
+            quadrantId = nil
+        }
+        return (start.lowerBound..<end.upperBound, quadrantId)
+    }
+
+    private static func encodedMetadata(matrixQuadrantId: String) -> String? {
+        let object = [matrixKey: matrixQuadrantId]
+        guard let data = try? JSONSerialization.data(withJSONObject: object, options: [.sortedKeys]),
+              let json = String(data: data, encoding: .utf8) else { return nil }
+        return "\(metadataPrefix)\(json)\(metadataSuffix)"
     }
 
     private static var sectionSeparator: String { "\n\n" }

@@ -11,8 +11,12 @@ final class KanbanBoardViewModel: ObservableObject {
 
     private let service: ReminderStoreService
     private var isUITesting: Bool {
+        #if DEBUG
         ProcessInfo.processInfo.environment["KANDO_UI_TESTING"] == "1" ||
         ProcessInfo.processInfo.arguments.contains("-KANDO_UI_TESTING")
+        #else
+        false
+        #endif
     }
 
     init(columns: [KanbanColumn] = KanbanColumn.defaultKanban, service: ReminderStoreService = ReminderStoreService()) {

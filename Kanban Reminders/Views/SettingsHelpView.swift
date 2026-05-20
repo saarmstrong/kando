@@ -157,6 +157,9 @@ private struct KanbanColumnSettingsRow: View {
     @State private var backingListDraft: String
     @State private var listActionError: String?
     @State private var isUpdatingList = false
+    @State private var showReassociateConfirmation = false
+    @State private var showRenameConfirmation = false
+    @State private var showDeleteConfirmation = false
     let moveUp: () -> Void
     let moveDown: () -> Void
     let delete: () -> Void
@@ -193,7 +196,9 @@ private struct KanbanColumnSettingsRow: View {
                     Label("Move Down", systemImage: "chevron.down")
                 }
                 Spacer()
-                Button(role: .destructive, action: delete) {
+                Button(role: .destructive) {
+                    showDeleteConfirmation = true
+                } label: {
                     Label("Delete", systemImage: "trash")
                 }
             }
@@ -221,29 +226,29 @@ private struct KanbanColumnSettingsRow: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
 
-                    if !reminderListNames.isEmpty {
-                        Picker("Reassociate with", selection: Binding(
-                            get: { column.backingReminderListName },
-                            set: { newValue in
-                                column.backingReminderListName = newValue
-                                backingListDraft = newValue
-                            }
-                        )) {
-                            ForEach(reminderListNames, id: \.self) { listName in
+                    if !kandoReminderListNames.isEmpty {
+                        Picker("Reassociate with", selection: $backingListDraft) {
+                            ForEach(kandoReminderListNames, id: \.self) { listName in
                                 Text(listName).tag(listName)
                             }
                         }
                     }
 
                     TextField("Reminders list name", text: $backingListDraft)
-                        .onSubmit { applyBackingListName() }
+                        .onSubmit { requestBackingListReassociation() }
+
+                    if !isKandoListName(backingListDraft) {
+                        Label("This is not a Kando-managed list. The app may read, move, or update reminders in that Apple Reminders list.", systemImage: "exclamationmark.triangle")
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+                    }
 
                     HStack {
                         Button("Use This List Name") {
-                            applyBackingListName()
+                            requestBackingListReassociation()
                         }
                         Button(isUpdatingList ? "Renaming…" : "Rename Native List") {
-                            Task { await renameNativeList() }
+                            showRenameConfirmation = true
                         }
                         .disabled(isUpdatingList || backingListDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     }
@@ -281,6 +286,47 @@ private struct KanbanColumnSettingsRow: View {
         .onChange(of: column.backingReminderListName) { _, newValue in
             backingListDraft = newValue
         }
+        .confirmationDialog("Delete Column?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
+            Button("Delete Column", role: .destructive, action: delete)
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("This removes the column from Kando settings. It does not delete the Apple Reminders list or its reminders.")
+        }
+        .confirmationDialog("Reassociate Column?", isPresented: $showReassociateConfirmation, titleVisibility: .visible) {
+            Button("Reassociate Column", role: isKandoListName(backingListDraft) ? nil : .destructive) {
+                applyBackingListName()
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("This column will point at \"\(backingListDraft)\". Tasks shown in this column will come from that Apple Reminders list.")
+        }
+        .confirmationDialog("Rename Native Reminders List?", isPresented: $showRenameConfirmation, titleVisibility: .visible) {
+            Button("Rename Apple Reminders List", role: .destructive) {
+                Task { await renameNativeList() }
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("This renames the actual Apple Reminders list from \"\(column.backingReminderListName)\" to \"\(backingListDraft)\". This change can sync through iCloud.")
+        }
+    }
+
+    private var kandoReminderListNames: [String] {
+        let names = reminderListNames.filter(isKandoListName)
+        if isKandoListName(column.backingReminderListName), !names.contains(column.backingReminderListName) {
+            return ([column.backingReminderListName] + names).sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+        }
+        return names
+    }
+
+    private func isKandoListName(_ name: String) -> Bool {
+        name.localizedCaseInsensitiveContains("Kando - Kanban -") || name.localizedCaseInsensitiveContains("Kando - Matrix -")
+    }
+
+    private func requestBackingListReassociation() {
+        let trimmed = backingListDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        backingListDraft = trimmed
+        showReassociateConfirmation = true
     }
 
     private func applyBackingListName() {
