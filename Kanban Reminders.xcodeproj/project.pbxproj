@@ -14,6 +14,7 @@
 		3F030C53078C4467944E9A12 /* KanbanColumnView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9A4162314A249F2A1937FD9 /* KanbanColumnView.swift */; };
 		51F378469F5B48909301F378 /* KanbanBoardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AEC0BA56F754667838B3033 /* KanbanBoardViewModel.swift */; };
 		54822B96DB9446909528615D /* ReminderTaskSortingFilteringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6537DE48F0334035A5DFF976 /* ReminderTaskSortingFilteringTests.swift */; };
+		845933294FD34693A2518BCC /* KanbanRemindersCoreUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6983EDABD8184BC3AA3974C3 /* KanbanRemindersCoreUITests.swift */; };
 		9C0D1A48E0CF453E9967E885 /* KanbanBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87ECAB5EB2FF43E5AB7233ED /* KanbanBoardView.swift */; };
 		ABECF09C6E7540CF818B1BEC /* SettingsHelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC6ED877F50B479FBBEC3EB5 /* SettingsHelpView.swift */; };
 		B970A272390546128D7ABCCE /* ReminderTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 581A8E158A0942BE82936754 /* ReminderTask.swift */; };
@@ -24,6 +25,16 @@
 		E5E4A9D28B954A58AB019D61 /* KanbanColumn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94A96BF5421D4A4499636340 /* KanbanColumn.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		C4F8E664185041EAA9225848 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 06B8F09F53924634B0C5B3FE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1B1D00DD8B744C49950D4B37;
+			remoteInfo = "Kanban Reminders";
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		2AEC0BA56F754667838B3033 /* KanbanBoardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KanbanBoardViewModel.swift; sourceTree = "<group>"; };
 		32226FC4C29A44D3A5EBA5E8 /* TaskEditorSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskEditorSheet.swift; sourceTree = "<group>"; };
@@ -33,21 +44,30 @@
 		581A8E158A0942BE82936754 /* ReminderTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderTask.swift; sourceTree = "<group>"; };
 		6089586531564548A07C6492 /* Kanban Reminders.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Kanban Reminders.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		6537DE48F0334035A5DFF976 /* ReminderTaskSortingFilteringTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderTaskSortingFilteringTests.swift; sourceTree = "<group>"; };
+		6983EDABD8184BC3AA3974C3 /* KanbanRemindersCoreUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KanbanRemindersCoreUITests.swift; sourceTree = "<group>"; };
 		7194187DFF08498BBCEE1C08 /* TaskCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskCardView.swift; sourceTree = "<group>"; };
 		82B09D32C05C443F9589AC99 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		87ECAB5EB2FF43E5AB7233ED /* KanbanBoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KanbanBoardView.swift; sourceTree = "<group>"; };
 		88709DF276F042CDBEF7738B /* Kanban RemindersTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Kanban RemindersTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		94A96BF5421D4A4499636340 /* KanbanColumn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KanbanColumn.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6478899AABBCC /* Kanban Reminders.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Kanban Reminders.entitlements"; sourceTree = "<group>"; };
 		A9A4162314A249F2A1937FD9 /* KanbanColumnView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KanbanColumnView.swift; sourceTree = "<group>"; };
 		ADCA42F087104FDA9FFA69C9 /* Kanban_RemindersApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Kanban_RemindersApp.swift; sourceTree = "<group>"; };
 		BC6ED877F50B479FBBEC3EB5 /* SettingsHelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsHelpView.swift; sourceTree = "<group>"; };
 		DFBC513EBB7B40E9ACFD8353 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		A1B2C3D4E5F6478899AABBCC /* Kanban Reminders.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Kanban Reminders.entitlements"; sourceTree = "<group>"; };
 		E96C92AE3F9B488FBCF64FDB /* PermissionDeniedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionDeniedView.swift; sourceTree = "<group>"; };
+		FB38C990F85A4983BCA1E0D7 /* Kanban RemindersUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Kanban RemindersUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		4386D2A904B446798D043AF6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5AAE7173F7114DB491068456 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -110,6 +130,14 @@
 			path = Models;
 			sourceTree = "<group>";
 		};
+		6B3F27D86D284298BE645B2F /* Kanban RemindersUITests */ = {
+			isa = PBXGroup;
+			children = (
+				6983EDABD8184BC3AA3974C3 /* KanbanRemindersCoreUITests.swift */,
+			);
+			path = "Kanban RemindersUITests";
+			sourceTree = "<group>";
+		};
 		8FAD64FCAD9D4251987C623D /* Kanban RemindersTests */ = {
 			isa = PBXGroup;
 			children = (
@@ -123,6 +151,7 @@
 			children = (
 				22238FDA395D4783A8A9C57F /* Kanban Reminders */,
 				8FAD64FCAD9D4251987C623D /* Kanban RemindersTests */,
+				6B3F27D86D284298BE645B2F /* Kanban RemindersUITests */,
 				5246A8DCCE6B46EE8FEABF03 /* Kanban Reminders.xctestplan */,
 				AE799C049AC349868ED2CA44 /* Products */,
 			);
@@ -141,6 +170,7 @@
 			children = (
 				6089586531564548A07C6492 /* Kanban Reminders.app */,
 				88709DF276F042CDBEF7738B /* Kanban RemindersTests.xctest */,
+				FB38C990F85A4983BCA1E0D7 /* Kanban RemindersUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -164,6 +194,24 @@
 			productName = "Kanban Reminders";
 			productReference = 6089586531564548A07C6492 /* Kanban Reminders.app */;
 			productType = "com.apple.product-type.application";
+		};
+		5E2E5C74E9C641A4885E94B8 /* Kanban RemindersUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 194CCF78845A4C048B868EB6 /* Build configuration list for PBXNativeTarget "Kanban RemindersUITests" */;
+			buildPhases = (
+				DB77672588EC4DEB9F53875B /* Sources */,
+				5AAE7173F7114DB491068456 /* Frameworks */,
+				DCAEC63CC66C42798C077848 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				8A47F723AA604FEEA882C0E5 /* PBXTargetDependency */,
+			);
+			name = "Kanban RemindersUITests";
+			productName = "Kanban RemindersUITests";
+			productReference = FB38C990F85A4983BCA1E0D7 /* Kanban RemindersUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 		B0E784AB7E774A5894EBC153 /* Kanban RemindersTests */ = {
 			isa = PBXNativeTarget;
@@ -214,6 +262,7 @@
 			targets = (
 				1B1D00DD8B744C49950D4B37 /* Kanban Reminders */,
 				B0E784AB7E774A5894EBC153 /* Kanban RemindersTests */,
+				5E2E5C74E9C641A4885E94B8 /* Kanban RemindersUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -224,6 +273,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				CABE89F20EB941459BDFB29C /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DCAEC63CC66C42798C077848 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -258,7 +314,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		DB77672588EC4DEB9F53875B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				845933294FD34693A2518BCC /* KanbanRemindersCoreUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		8A47F723AA604FEEA882C0E5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1B1D00DD8B744C49950D4B37 /* Kanban Reminders */;
+			targetProxy = C4F8E664185041EAA9225848 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		2BC5A5CC42CF4BEF96D89D2C /* Debug */ = {
@@ -267,14 +339,16 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = "";
 				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "Kanban Reminders/Kanban Reminders.entitlements";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 42P99ST2F8;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "Kanban Reminders/Info.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.KanbanReminders;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
@@ -319,6 +393,25 @@
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		8CA80EF9346C4B5D85FAB202 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.KanbanRemindersUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "Kanban Reminders";
 			};
 			name = Debug;
 		};
@@ -382,6 +475,25 @@
 			};
 			name = Debug;
 		};
+		BF8D763E1ACB4A5B8895CA1A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.KanbanRemindersUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "Kanban Reminders";
+			};
+			name = Release;
+		};
 		C0742DC0BA4F4E2DB1A75CF9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -441,14 +553,16 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = "";
 				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "Kanban Reminders/Kanban Reminders.entitlements";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 42P99ST2F8;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "Kanban Reminders/Info.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.KanbanReminders;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
@@ -463,6 +577,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		194CCF78845A4C048B868EB6 /* Build configuration list for PBXNativeTarget "Kanban RemindersUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8CA80EF9346C4B5D85FAB202 /* Debug */,
+				BF8D763E1ACB4A5B8895CA1A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		4195C2DBA37244C09057EEA7 /* Build configuration list for PBXNativeTarget "Kanban RemindersTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

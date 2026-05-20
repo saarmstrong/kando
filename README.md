@@ -41,13 +41,21 @@ The project includes the required Reminders privacy usage strings in `Kanban Rem
 
 The project includes an XCTest unit test target, `Kanban RemindersTests`, and an Xcode test plan, `Kanban Reminders.xctestplan`, attached to the shared `Kanban Reminders` scheme.
 
-Current tests cover task sorting and filtering behavior for priority and due dates. The same tests run on macOS and iOS Simulator.
+Current unit tests cover task sorting and filtering behavior for priority and due dates. The UI test target, `Kanban RemindersUITests`, launches the app in a safe UI-test mode with in-memory sample reminders so it can exercise the board, Matrix, Settings, and task creation without touching your real Apple Reminders data.
 
-Run tests in Xcode with Product → Test, or from the command line:
+Run all unit and UI tests in Xcode with Product → Test. The shared `Kanban Reminders` scheme uses `Kanban Reminders.xctestplan`, which includes both `Kanban RemindersTests` and `Kanban RemindersUITests`.
+
+Command-line examples:
 
 ```bash
-xcodebuild -project "Kanban Reminders.xcodeproj" -scheme "Kanban Reminders" -sdk macosx test
+# iOS Simulator: unit + UI tests
 xcodebuild -project "Kanban Reminders.xcodeproj" -scheme "Kanban Reminders" -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17 Pro' test
+
+# macOS: unit + UI tests. Some desktop UI flows may skip if the local runner cannot expose the seeded UI.
+xcodebuild -project "Kanban Reminders.xcodeproj" -scheme "Kanban Reminders" -sdk macosx -destination 'platform=macOS' test CODE_SIGNING_ALLOWED=NO
+
+# Unit tests only
+xcodebuild -project "Kanban Reminders.xcodeproj" -scheme "Kanban Reminders" -sdk macosx test -skip-testing:"Kanban RemindersUITests" CODE_SIGNING_ALLOWED=NO
 ```
 
 ## Sync and limitations

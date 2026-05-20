@@ -23,6 +23,13 @@
         "identifier" : "B0E784AB7E774A5894EBC153",
         "name" : "Kanban RemindersTests"
       }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Kanban Reminders.xcodeproj",
+        "identifier" : "5E2E5C74E9C641A4885E94B8",
+        "name" : "Kanban RemindersUITests"
+      }
     }
   ],
   "version" : 1

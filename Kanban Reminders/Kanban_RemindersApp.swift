@@ -29,12 +29,15 @@ struct MainTabView: View {
         TabView {
             KanbanBoardView(title: "Kanban", columns: settings.kanbanColumns, viewModel: boardViewModel)
                 .tabItem { Label("Kanban", systemImage: "rectangle.3.group") }
+                .accessibilityIdentifier("KanbanTab")
 
             EisenhowerMatrixView(viewModel: boardViewModel)
                 .tabItem { Label("Matrix", systemImage: "square.grid.2x2") }
+                .accessibilityIdentifier("MatrixTab")
 
             SettingsHelpView()
                 .tabItem { Label("Settings", systemImage: "gearshape") }
+                .accessibilityIdentifier("SettingsTab")
         }
         .onAppear {
             boardViewModel.updateColumns(settings.kanbanColumns)

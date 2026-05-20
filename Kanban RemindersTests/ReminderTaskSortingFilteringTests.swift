@@ -12,6 +12,8 @@ final class ReminderTaskSortingFilteringTests: XCTestCase {
             reminderIdentifier: id,
             title: title,
             notes: nil,
+            commentsMarkdown: nil,
+            matrixQuadrantId: nil,
             dueDate: dueDate,
             priority: priority,
             isCompleted: isCompleted,

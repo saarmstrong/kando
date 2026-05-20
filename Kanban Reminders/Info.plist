@@ -24,6 +24,10 @@
 	<string>public.app-category.productivity</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSRemindersFullAccessUsageDescription</key>
+	<string>Kanban Reminders needs access to create and update native Apple Reminders lists and tasks.</string>
+	<key>NSRemindersUsageDescription</key>
+	<string>Kanban Reminders needs access to create and update native Apple Reminders lists and tasks.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -46,9 +50,5 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>NSRemindersFullAccessUsageDescription</key>
-	<string>Kanban Reminders needs access to create and update native Apple Reminders lists and tasks.</string>
-	<key>NSRemindersUsageDescription</key>
-	<string>Kanban Reminders needs access to create and update native Apple Reminders lists and tasks.</string>
 </dict>
 </plist>

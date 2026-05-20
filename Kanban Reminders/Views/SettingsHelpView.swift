@@ -4,6 +4,10 @@ struct SettingsHelpView: View {
     @EnvironmentObject private var settings: AppSettings
     @State private var newKanbanColumn = ""
     @State private var newMatrixQuadrant = ""
+    @State private var reminderListNames: [String] = []
+    @State private var reminderListError: String?
+
+    private let reminderService = ReminderStoreService()
 
     var body: some View {
         NavigationStack {
@@ -18,6 +22,7 @@ struct SettingsHelpView: View {
 
                 Section("Task Display") {
                     Toggle("Hide completed tasks", isOn: $settings.hideCompletedTasks)
+                        .accessibilityIdentifier("HideCompletedToggle")
                     Text("Completed tasks are always hidden from the Matrix view. This setting also hides them from the Kanban board, including Done.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -27,9 +32,11 @@ struct SettingsHelpView: View {
                     ForEach($settings.kanbanColumns) { $column in
                         KanbanColumnSettingsRow(
                             column: $column,
+                            reminderListNames: reminderListNames,
                             moveUp: { settings.moveKanbanColumnUp(id: column.id) },
                             moveDown: { settings.moveKanbanColumnDown(id: column.id) },
-                            delete: { settings.removeKanbanColumn(id: column.id) }
+                            delete: { settings.removeKanbanColumn(id: column.id) },
+                            renameReminderList: renameReminderList
                         )
                     }
                     .onMove(perform: settings.moveKanbanColumn)
@@ -37,12 +44,26 @@ struct SettingsHelpView: View {
 
                     VStack(alignment: .leading, spacing: 8) {
                         TextField("New column", text: $newKanbanColumn)
+                            .accessibilityIdentifier("NewColumnTextField")
                             .onSubmit(addKanbanColumn)
                         Button(action: addKanbanColumn) {
                             Label("Add Column", systemImage: "plus")
                         }
+                        .accessibilityIdentifier("AddColumnButton")
                         .buttonStyle(.borderedProminent)
                         .disabled(newKanbanColumn.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    }
+
+                    Button {
+                        Task { await loadReminderLists() }
+                    } label: {
+                        Label("Refresh Reminders Lists", systemImage: "arrow.clockwise")
+                    }
+
+                    if let reminderListError {
+                        Text(reminderListError)
+                            .font(.caption)
+                            .foregroundStyle(.red)
                     }
                 }
 
@@ -95,7 +116,22 @@ struct SettingsHelpView: View {
             #if os(iOS)
             .toolbar { EditButton() }
             #endif
+            .task { await loadReminderLists() }
         }
+    }
+
+    private func loadReminderLists() async {
+        do {
+            reminderListError = nil
+            reminderListNames = try await reminderService.reminderListNames()
+        } catch {
+            reminderListError = error.localizedDescription
+        }
+    }
+
+    private func renameReminderList(from oldTitle: String, to newTitle: String) async throws {
+        try await reminderService.renameReminderList(from: oldTitle, to: newTitle)
+        await loadReminderLists()
     }
 
     private func addKanbanColumn() {
@@ -115,19 +151,34 @@ struct SettingsHelpView: View {
 
 private struct KanbanColumnSettingsRow: View {
     @Binding var column: KanbanColumn
+    let reminderListNames: [String]
     @State private var hasLimit: Bool
     @State private var limit: Int
+    @State private var backingListDraft: String
+    @State private var listActionError: String?
+    @State private var isUpdatingList = false
     let moveUp: () -> Void
     let moveDown: () -> Void
     let delete: () -> Void
+    let renameReminderList: (String, String) async throws -> Void
 
-    init(column: Binding<KanbanColumn>, moveUp: @escaping () -> Void, moveDown: @escaping () -> Void, delete: @escaping () -> Void) {
+    init(
+        column: Binding<KanbanColumn>,
+        reminderListNames: [String],
+        moveUp: @escaping () -> Void,
+        moveDown: @escaping () -> Void,
+        delete: @escaping () -> Void,
+        renameReminderList: @escaping (String, String) async throws -> Void
+    ) {
         _column = column
+        self.reminderListNames = reminderListNames
         _hasLimit = State(initialValue: column.wrappedValue.wipLimit != nil)
         _limit = State(initialValue: column.wrappedValue.wipLimit ?? 3)
+        _backingListDraft = State(initialValue: column.wrappedValue.backingReminderListName)
         self.moveUp = moveUp
         self.moveDown = moveDown
         self.delete = delete
+        self.renameReminderList = renameReminderList
     }
 
     var body: some View {
@@ -164,6 +215,53 @@ private struct KanbanColumnSettingsRow: View {
             }
             .disabled(column.colorHex == nil)
 
+            DisclosureGroup("Reminders List") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Current: \(column.backingReminderListName)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    if !reminderListNames.isEmpty {
+                        Picker("Reassociate with", selection: Binding(
+                            get: { column.backingReminderListName },
+                            set: { newValue in
+                                column.backingReminderListName = newValue
+                                backingListDraft = newValue
+                            }
+                        )) {
+                            ForEach(reminderListNames, id: \.self) { listName in
+                                Text(listName).tag(listName)
+                            }
+                        }
+                    }
+
+                    TextField("Reminders list name", text: $backingListDraft)
+                        .onSubmit { applyBackingListName() }
+
+                    HStack {
+                        Button("Use This List Name") {
+                            applyBackingListName()
+                        }
+                        Button(isUpdatingList ? "Renaming…" : "Rename Native List") {
+                            Task { await renameNativeList() }
+                        }
+                        .disabled(isUpdatingList || backingListDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    }
+                    .buttonStyle(.borderless)
+
+                    Text("Use This List Name reassociates the column with an existing or new Reminders list. Rename Native List renames the current Apple Reminders list too.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    if let listActionError {
+                        Text(listActionError)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
+                }
+                .padding(.vertical, 4)
+            }
+
             Toggle("WIP limit", isOn: $hasLimit)
                 .onChange(of: hasLimit) { _, enabled in
                     column.wipLimit = enabled ? limit : nil
@@ -180,5 +278,30 @@ private struct KanbanColumnSettingsRow: View {
             }
         }
         .padding(.vertical, 4)
+        .onChange(of: column.backingReminderListName) { _, newValue in
+            backingListDraft = newValue
+        }
+    }
+
+    private func applyBackingListName() {
+        let trimmed = backingListDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        column.backingReminderListName = trimmed
+        listActionError = nil
+    }
+
+    private func renameNativeList() async {
+        let oldTitle = column.backingReminderListName
+        let newTitle = backingListDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !newTitle.isEmpty else { return }
+        isUpdatingList = true
+        defer { isUpdatingList = false }
+        do {
+            try await renameReminderList(oldTitle, newTitle)
+            column.backingReminderListName = newTitle
+            listActionError = nil
+        } catch {
+            listActionError = error.localizedDescription
+        }
     }
 }

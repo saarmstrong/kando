@@ -4,12 +4,71 @@ struct ReminderTask: Identifiable, Hashable {
     let reminderIdentifier: String
     var title: String
     var notes: String?
+    var commentsMarkdown: String?
+    var matrixQuadrantId: String?
     var dueDate: Date?
     var priority: Int
     var isCompleted: Bool
     var columnId: String
 
     var id: String { reminderIdentifier }
+
+    var hasMarkdownComments: Bool {
+        commentsMarkdown?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+    }
+
+    var trimmedMarkdownComments: String? {
+        commentsMarkdown?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+    }
+}
+
+enum ReminderContentCodec {
+    static let commentsHeader = "---\nKando Comments (Markdown):"
+    static let metadataHeader = "---\nKando Metadata:"
+    private static let matrixKey = "matrixQuadrantId"
+
+    static func splitNotesAndComments(_ rawNotes: String?) -> (notes: String?, commentsMarkdown: String?, matrixQuadrantId: String?) {
+        guard var rawNotes, !rawNotes.isEmpty else { return (nil, nil, nil) }
+
+        let matrixQuadrantId: String?
+        if let metadataRange = rawNotes.range(of: sectionSeparator + metadataHeader + "\n") ?? rawNotes.range(of: metadataHeader + "\n") {
+            let metadata = String(rawNotes[metadataRange.upperBound...])
+            matrixQuadrantId = metadata
+                .split(separator: "\n")
+                .first { $0.hasPrefix("\(matrixKey):") }
+                .map { String($0.dropFirst("\(matrixKey):".count)).trimmingCharacters(in: .whitespacesAndNewlines) }
+                .flatMap { $0.nilIfEmpty }
+            rawNotes = String(rawNotes[..<metadataRange.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+        } else {
+            matrixQuadrantId = nil
+        }
+
+        guard let range = rawNotes.range(of: sectionSeparator + commentsHeader + "\n") ?? rawNotes.range(of: commentsHeader + "\n") else {
+            return (rawNotes.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty, nil, matrixQuadrantId)
+        }
+
+        let plainNotes = String(rawNotes[..<range.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+        let comments = String(rawNotes[range.upperBound...]).trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+        return (plainNotes, comments, matrixQuadrantId)
+    }
+
+    static func combinedNotes(notes: String?, commentsMarkdown: String?, matrixQuadrantId: String?) -> String? {
+        let cleanNotes = notes?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+        let cleanComments = commentsMarkdown?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+        let cleanMatrix = matrixQuadrantId?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+
+        var sections: [String] = []
+        if let cleanNotes { sections.append(cleanNotes) }
+        if let cleanComments { sections.append("\(commentsHeader)\n\(cleanComments)") }
+        if let cleanMatrix { sections.append("\(metadataHeader)\n\(matrixKey): \(cleanMatrix)") }
+        return sections.isEmpty ? nil : sections.joined(separator: sectionSeparator)
+    }
+
+    private static var sectionSeparator: String { "\n\n" }
+}
+
+private extension String {
+    var nilIfEmpty: String? { isEmpty ? nil : self }
 }
 
 enum TaskSortOption: String, CaseIterable, Identifiable {

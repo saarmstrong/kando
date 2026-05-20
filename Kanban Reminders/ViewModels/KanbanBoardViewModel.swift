@@ -10,6 +10,10 @@ final class KanbanBoardViewModel: ObservableObject {
     @Published var columns: [KanbanColumn]
 
     private let service: ReminderStoreService
+    private var isUITesting: Bool {
+        ProcessInfo.processInfo.environment["KANDO_UI_TESTING"] == "1" ||
+        ProcessInfo.processInfo.arguments.contains("-KANDO_UI_TESTING")
+    }
 
     init(columns: [KanbanColumn] = KanbanColumn.defaultKanban, service: ReminderStoreService = ReminderStoreService()) {
         self.columns = columns
@@ -22,17 +26,31 @@ final class KanbanBoardViewModel: ObservableObject {
     }
 
     func load() async {
+        guard !isLoading else { return }
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
 
+        if isUITesting {
+            hasPermission = true
+            if tasks.isEmpty { tasks = sampleUITestTasks() }
+            return
+        }
+
         do {
             hasPermission = try await service.requestAccessIfNeeded()
             guard hasPermission else { return }
-            tasks = try await service.loadBoard(columns: columns)
+            // Replace the UI projection only after EventKit returns successfully. If
+            // refresh fails, the current board stays visible instead of being cleared.
+            let latestTasks = try await service.loadBoard(columns: columns)
+            tasks = latestTasks
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    func refreshFromReminders() async {
+        await load()
     }
 
     func tasks(in columnId: String) -> [ReminderTask] {
@@ -40,6 +58,33 @@ final class KanbanBoardViewModel: ObservableObject {
     }
 
     func saveTask(identifier: String?, draft: ReminderDraft) async {
+        if isUITesting {
+            let normalizedDraft = normalizedDraftForCompletion(draft)
+            if let identifier, let index = tasks.firstIndex(where: { $0.reminderIdentifier == identifier }) {
+                tasks[index].title = normalizedDraft.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Untitled Task" : normalizedDraft.title
+                tasks[index].notes = normalizedDraft.notes
+                tasks[index].commentsMarkdown = normalizedDraft.commentsMarkdown
+                tasks[index].matrixQuadrantId = normalizedDraft.matrixQuadrantId
+                tasks[index].dueDate = normalizedDraft.dueDate
+                tasks[index].priority = normalizedDraft.priority
+                tasks[index].isCompleted = normalizedDraft.isCompleted
+                tasks[index].columnId = normalizedDraft.columnId
+            } else {
+                tasks.append(ReminderTask(
+                    reminderIdentifier: UUID().uuidString,
+                    title: normalizedDraft.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Untitled Task" : normalizedDraft.title,
+                    notes: normalizedDraft.notes,
+                    commentsMarkdown: normalizedDraft.commentsMarkdown,
+                    matrixQuadrantId: normalizedDraft.matrixQuadrantId,
+                    dueDate: normalizedDraft.dueDate,
+                    priority: normalizedDraft.priority,
+                    isCompleted: normalizedDraft.isCompleted,
+                    columnId: normalizedDraft.columnId
+                ))
+            }
+            return
+        }
+
         do {
             let normalizedDraft = normalizedDraftForCompletion(draft)
             if let identifier {
@@ -55,6 +100,12 @@ final class KanbanBoardViewModel: ObservableObject {
 
     func move(_ task: ReminderTask, to columnId: String) async {
         guard task.columnId != columnId else { return }
+        if isUITesting {
+            guard let index = tasks.firstIndex(where: { $0.reminderIdentifier == task.reminderIdentifier }) else { return }
+            tasks[index].columnId = columnId
+            if isDoneColumnId(columnId) { tasks[index].isCompleted = true }
+            return
+        }
         do {
             try await service.moveReminder(identifier: task.reminderIdentifier, to: columnId, columns: columns)
             await load()
@@ -68,7 +119,34 @@ final class KanbanBoardViewModel: ObservableObject {
         await move(task, to: columnId)
     }
 
+    func setMatrixQuadrant(_ task: ReminderTask, quadrantId: String) async {
+        if isUITesting {
+            if let index = tasks.firstIndex(where: { $0.reminderIdentifier == task.reminderIdentifier }) {
+                tasks[index].matrixQuadrantId = quadrantId
+            }
+            return
+        }
+        do {
+            try await service.setMatrixQuadrant(identifier: task.reminderIdentifier, quadrantId: quadrantId)
+            if let index = tasks.firstIndex(where: { $0.reminderIdentifier == task.reminderIdentifier }) {
+                tasks[index].matrixQuadrantId = quadrantId
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
     func setCompletion(_ task: ReminderTask, isCompleted: Bool) async {
+        if isUITesting {
+            guard let index = tasks.firstIndex(where: { $0.reminderIdentifier == task.reminderIdentifier }) else { return }
+            tasks[index].isCompleted = isCompleted
+            if isCompleted, let doneColumn {
+                tasks[index].columnId = doneColumn.id
+            } else if !isCompleted, isDoneColumnId(tasks[index].columnId), let firstNonDoneColumn {
+                tasks[index].columnId = firstNonDoneColumn.id
+            }
+            return
+        }
         do {
             if isCompleted, let doneColumn = doneColumn {
                 // Completing a reminder should also move it to the Done Kanban list so
@@ -117,5 +195,34 @@ final class KanbanBoardViewModel: ObservableObject {
 
     func clearError() {
         errorMessage = nil
+    }
+
+    private func sampleUITestTasks() -> [ReminderTask] {
+        let backlog = columns.first(where: { $0.id == "backlog" })?.id ?? columns.first?.id ?? "backlog"
+        let doing = columns.first(where: { $0.id == "doing" })?.id ?? backlog
+        return [
+            ReminderTask(
+                reminderIdentifier: "ui-seed-backlog",
+                title: "UITest Backlog Task",
+                notes: "Seed task for UI tests",
+                commentsMarkdown: "**Seed** markdown comment",
+                matrixQuadrantId: nil,
+                dueDate: nil,
+                priority: 5,
+                isCompleted: false,
+                columnId: backlog
+            ),
+            ReminderTask(
+                reminderIdentifier: "ui-seed-doing",
+                title: "UITest Doing Task",
+                notes: nil,
+                commentsMarkdown: nil,
+                matrixQuadrantId: nil,
+                dueDate: nil,
+                priority: 1,
+                isCompleted: false,
+                columnId: doing
+            )
+        ]
     }
 }

@@ -95,7 +95,15 @@ final class AppSettings: ObservableObject {
     private let hideCompletedTasksKey = "hideCompletedTasks"
 
     init() {
-        load()
+        if ProcessInfo.processInfo.environment["KANDO_UI_TESTING"] == "1" || ProcessInfo.processInfo.arguments.contains("-KANDO_UI_TESTING") {
+            colorMode = .system
+            kanbanColumns = KanbanColumn.defaultKanban
+            matrixQuadrants = KanbanColumn.defaultMatrix
+            matrixAssignments = [:]
+            hideCompletedTasks = false
+        } else {
+            load()
+        }
     }
 
     func addKanbanColumn(title: String) {
@@ -153,6 +161,9 @@ final class AppSettings: ObservableObject {
     }
 
     func quadrantId(for task: ReminderTask) -> String {
+        if let synced = task.matrixQuadrantId, matrixQuadrants.contains(where: { $0.id == synced }) {
+            return synced
+        }
         if let assigned = matrixAssignments[task.reminderIdentifier], matrixQuadrants.contains(where: { $0.id == assigned }) {
             return assigned
         }

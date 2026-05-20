@@ -1,4 +1,7 @@
 import SwiftUI
+#if os(macOS)
+import AppKit
+#endif
 
 struct KanbanBoardView: View {
     let title: String
@@ -9,6 +12,10 @@ struct KanbanBoardView: View {
     @State private var editor: EditorState?
     @State private var sortOption: TaskSortOption = .title
     @State private var filterOption: TaskFilterOption = .all
+    #if os(macOS)
+    @State private var isCommandKeyPressed = false
+    @State private var commandKeyMonitor: Any?
+    #endif
 
     init(title: String = "Kanban", columns: [KanbanColumn] = KanbanColumn.defaultKanban, viewModel: KanbanBoardViewModel) {
         self.title = title
@@ -29,15 +36,33 @@ struct KanbanBoardView: View {
             .toolbar {
                 ToolbarItemGroup(placement: .automatic) {
                     sortFilterMenu
+                    #if os(macOS)
                     Button {
-                        if let first = visibleColumns.first { editor = .new(first.id) }
+                        Task { await viewModel.refreshFromReminders() }
                     } label: {
-                        Label("Add Task", systemImage: "plus")
+                        Label("Refresh", systemImage: "arrow.clockwise")
                     }
+                    .keyboardShortcut("r", modifiers: .command)
+                    .disabled(viewModel.isLoading)
+                    #endif
+                    Button {
+                        openNewTask()
+                    } label: {
+                        Label(addTaskLabel, systemImage: "plus")
+                    }
+                    .accessibilityIdentifier("AddTaskButton")
+                    #if os(macOS)
+                    .keyboardShortcut("n", modifiers: .command)
+                    #endif
                     .disabled(visibleColumns.isEmpty)
                 }
             }
-            .onAppear { viewModel.updateColumns(columns) }
+            .background(columnHotkeys)
+            .onAppear {
+                viewModel.updateColumns(columns)
+                installCommandKeyMonitorIfNeeded()
+            }
+            .onDisappear { removeCommandKeyMonitor() }
             .onChange(of: columns) { _, newColumns in
                 viewModel.updateColumns(newColumns)
                 Task { await viewModel.load() }
@@ -92,12 +117,13 @@ struct KanbanBoardView: View {
     private var board: some View {
         ScrollView([.horizontal, .vertical]) {
             HStack(alignment: .top, spacing: 16) {
-                ForEach(visibleColumns) { column in
+                ForEach(Array(visibleColumns.enumerated()), id: \.element.id) { index, column in
                     KanbanColumnView(
                         column: column,
                         tasks: tasks(in: column.id),
                         allColumns: viewModel.columns,
-                        onAdd: { editor = .new(column.id) },
+                        shortcutHint: shortcutHint(forColumnAt: index),
+                        onAdd: { editor = .newTask(in: column.id) },
                         onEdit: { editor = .edit($0) },
                         onMove: { task, target in Task { await viewModel.move(task, to: target) } },
                         onComplete: { task, completed in Task { await viewModel.setCompletion(task, isCompleted: completed) } },
@@ -116,15 +142,79 @@ struct KanbanBoardView: View {
     private var visibleColumns: [KanbanColumn] {
         viewModel.columns.filter { !$0.isHidden }
     }
+
+    private var addTaskLabel: String {
+        #if os(macOS)
+        isCommandKeyPressed ? "Add Task ⌘N" : "Add Task"
+        #else
+        "Add Task"
+        #endif
+    }
+
+    private func shortcutHint(forColumnAt index: Int) -> String? {
+        #if os(macOS)
+        guard isCommandKeyPressed, index < 9 else { return nil }
+        return "⌘\(index + 1)"
+        #else
+        return nil
+        #endif
+    }
+
+    @ViewBuilder
+    private var columnHotkeys: some View {
+        #if os(macOS)
+        ForEach(Array(visibleColumns.prefix(9).enumerated()), id: \.element.id) { index, column in
+            Button("Add to \(column.title)") {
+                editor = .newTask(in: column.id)
+            }
+            .keyboardShortcut(KeyEquivalent(Character("\(index + 1)")), modifiers: .command)
+            .hidden()
+            .accessibilityHidden(true)
+        }
+        #else
+        EmptyView()
+        #endif
+    }
+
+    private func openNewTask() {
+        if let first = visibleColumns.first {
+            editor = .newTask(in: first.id)
+        }
+    }
+
+    private func installCommandKeyMonitorIfNeeded() {
+        #if os(macOS)
+        guard commandKeyMonitor == nil else { return }
+        isCommandKeyPressed = NSEvent.modifierFlags.contains(.command)
+        commandKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: [.flagsChanged, .keyDown, .keyUp]) { event in
+            isCommandKeyPressed = event.modifierFlags.contains(.command)
+            return event
+        }
+        #endif
+    }
+
+    private func removeCommandKeyMonitor() {
+        #if os(macOS)
+        if let commandKeyMonitor {
+            NSEvent.removeMonitor(commandKeyMonitor)
+            self.commandKeyMonitor = nil
+        }
+        isCommandKeyPressed = false
+        #endif
+    }
 }
 
 enum EditorState: Identifiable {
-    case new(String)
+    case new(columnId: String, nonce: UUID)
     case edit(ReminderTask)
+
+    static func newTask(in columnId: String) -> EditorState {
+        .new(columnId: columnId, nonce: UUID())
+    }
 
     var id: String {
         switch self {
-        case .new(let columnId): return "new-\(columnId)"
+        case .new(let columnId, let nonce): return "new-\(columnId)-\(nonce.uuidString)"
         case .edit(let task): return task.id
         }
     }

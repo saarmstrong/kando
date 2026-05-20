@@ -20,6 +20,8 @@ enum ReminderStoreError: LocalizedError {
 struct ReminderDraft: Equatable {
     var title: String
     var notes: String?
+    var commentsMarkdown: String?
+    var matrixQuadrantId: String?
     var dueDate: Date?
     var priority: Int
     var isCompleted: Bool
@@ -49,6 +51,9 @@ final class ReminderStoreService {
 
     func loadBoard(columns: [KanbanColumn]) async throws -> [ReminderTask] {
         guard try await requestAccessIfNeeded() else { throw ReminderStoreError.accessDenied }
+        // Pull the latest Calendar/Reminders metadata before reading so changes made
+        // in the native Reminders app are reflected without writing stale state back.
+        eventStore.refreshSourcesIfNecessary()
         let lists = try ensureLists(columns: columns)
 
         var loaded: [ReminderTask] = []
@@ -121,6 +126,40 @@ final class ReminderStoreService {
         try eventStore.save(reminder, commit: true)
     }
 
+    func reminderListNames() async throws -> [String] {
+        guard try await requestAccessIfNeeded() else { throw ReminderStoreError.accessDenied }
+        eventStore.refreshSourcesIfNecessary()
+        return eventStore.calendars(for: .reminder)
+            .map(\.title)
+            .sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+    }
+
+    func setMatrixQuadrant(identifier: String, quadrantId: String?) async throws {
+        guard try await requestAccessIfNeeded() else { throw ReminderStoreError.accessDenied }
+        guard let reminder = eventStore.calendarItem(withIdentifier: identifier) as? EKReminder else {
+            throw ReminderStoreError.reminderNotFound
+        }
+        let content = ReminderContentCodec.splitNotesAndComments(reminder.notes)
+        reminder.notes = ReminderContentCodec.combinedNotes(
+            notes: content.notes,
+            commentsMarkdown: content.commentsMarkdown,
+            matrixQuadrantId: quadrantId
+        )
+        try eventStore.save(reminder, commit: true)
+    }
+
+    func renameReminderList(from oldTitle: String, to newTitle: String) async throws {
+        guard try await requestAccessIfNeeded() else { throw ReminderStoreError.accessDenied }
+        eventStore.refreshSourcesIfNecessary()
+        let trimmedNewTitle = newTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedNewTitle.isEmpty else { throw ReminderStoreError.listCreationFailed }
+        guard let calendar = eventStore.calendars(for: .reminder).first(where: { $0.title == oldTitle }) else {
+            throw ReminderStoreError.listCreationFailed
+        }
+        calendar.title = trimmedNewTitle
+        try eventStore.saveCalendar(calendar, commit: true)
+    }
+
     private func ensureLists(columns: [KanbanColumn]) throws -> [String: EKCalendar] {
         let existing = eventStore.calendars(for: .reminder)
         var lists: [String: EKCalendar] = [:]
@@ -176,7 +215,12 @@ final class ReminderStoreService {
 
     private func apply(draft: ReminderDraft, to reminder: EKReminder) {
         reminder.title = draft.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Untitled Task" : draft.title
-        reminder.notes = draft.notes?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+        let existingContent = ReminderContentCodec.splitNotesAndComments(reminder.notes)
+        reminder.notes = ReminderContentCodec.combinedNotes(
+            notes: draft.notes,
+            commentsMarkdown: draft.commentsMarkdown,
+            matrixQuadrantId: draft.matrixQuadrantId ?? existingContent.matrixQuadrantId
+        )
         reminder.priority = draft.priority
         reminder.isCompleted = draft.isCompleted
 
@@ -188,18 +232,17 @@ final class ReminderStoreService {
     }
 
     private func makeTask(from reminder: EKReminder, column: KanbanColumn) -> ReminderTask {
-        ReminderTask(
+        let content = ReminderContentCodec.splitNotesAndComments(reminder.notes)
+        return ReminderTask(
             reminderIdentifier: reminder.calendarItemIdentifier,
             title: reminder.title ?? "Untitled Task",
-            notes: reminder.notes,
+            notes: content.notes,
+            commentsMarkdown: content.commentsMarkdown,
+            matrixQuadrantId: content.matrixQuadrantId,
             dueDate: reminder.dueDateComponents?.date,
             priority: reminder.priority,
             isCompleted: reminder.isCompleted,
             columnId: column.id
         )
     }
-}
-
-private extension String {
-    var nilIfEmpty: String? { isEmpty ? nil : self }
 }

@@ -34,7 +34,10 @@ struct EisenhowerMatrixView: View {
                     task: task,
                     quadrants: settings.matrixQuadrants,
                     currentQuadrantId: settings.quadrantId(for: task),
-                    onMove: { targetId in settings.assign(task, to: targetId) },
+                    onMove: { targetId in
+                        settings.assign(task, to: targetId)
+                        Task { await viewModel.setMatrixQuadrant(task, quadrantId: targetId) }
+                    },
                     onComplete: { completed in Task { await viewModel.setCompletion(task, isCompleted: completed) } }
                 )
                 .presentationDetents([.medium, .large])
@@ -74,11 +77,15 @@ struct EisenhowerMatrixView: View {
                         tasks: tasks(in: quadrant),
                         allQuadrants: settings.matrixQuadrants,
                         onLongPress: { detailTask = $0 },
-                        onMove: { task, quadrantId in settings.assign(task, to: quadrantId) },
+                        onMove: { task, quadrantId in
+                            settings.assign(task, to: quadrantId)
+                            Task { await viewModel.setMatrixQuadrant(task, quadrantId: quadrantId) }
+                        },
                         onComplete: { task, completed in Task { await viewModel.setCompletion(task, isCompleted: completed) } },
                         onDropIdentifier: { identifier in
                             if let task = viewModel.tasks.first(where: { $0.reminderIdentifier == identifier }) {
                                 settings.assign(task, to: quadrant.id)
+                                Task { await viewModel.setMatrixQuadrant(task, quadrantId: quadrant.id) }
                             }
                         }
                     )
@@ -192,6 +199,9 @@ struct MatrixTaskSummaryCard: View {
                 if task.priority > 0 {
                     Label(priorityLabel, systemImage: "flag.fill")
                 }
+                if task.hasMarkdownComments {
+                    Label("Comments", systemImage: "text.bubble")
+                }
             }
             .font(.caption2)
             .foregroundStyle(.secondary)
@@ -227,6 +237,14 @@ struct MatrixTaskDetailView: View {
                 Section("Task") {
                     Text(task.title).font(.headline)
                     if let notes = task.notes, !notes.isEmpty { Text(notes) }
+                    if let comments = task.trimmedMarkdownComments {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Label("Comments", systemImage: "text.bubble")
+                                .font(.subheadline.weight(.semibold))
+                            MarkdownPreview(markdown: comments)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
                     if let dueDate = task.dueDate {
                         Label(dueDate.formatted(date: .abbreviated, time: .shortened), systemImage: "calendar")
                     }

@@ -8,6 +8,7 @@ struct TaskEditorSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var title: String
     @State private var notes: String
+    @State private var commentsMarkdown: String
     @State private var hasDueDate: Bool
     @State private var dueDate: Date
     @State private var priority: Int
@@ -21,9 +22,10 @@ struct TaskEditorSheet: View {
         self.onSave = onSave
 
         switch state {
-        case .new(let columnId):
+        case .new(let columnId, _):
             _title = State(initialValue: "")
             _notes = State(initialValue: "")
+            _commentsMarkdown = State(initialValue: "")
             _hasDueDate = State(initialValue: false)
             _dueDate = State(initialValue: Date())
             _priority = State(initialValue: 0)
@@ -32,6 +34,7 @@ struct TaskEditorSheet: View {
         case .edit(let task):
             _title = State(initialValue: task.title)
             _notes = State(initialValue: task.notes ?? "")
+            _commentsMarkdown = State(initialValue: task.commentsMarkdown ?? "")
             _hasDueDate = State(initialValue: task.dueDate != nil)
             _dueDate = State(initialValue: task.dueDate ?? Date())
             _priority = State(initialValue: task.priority)
@@ -47,6 +50,24 @@ struct TaskEditorSheet: View {
                     TextField("Title", text: $title)
                     TextField("Notes", text: $notes, axis: .vertical)
                         .lineLimit(3...6)
+                }
+
+                Section("Markdown Comments") {
+                    TextEditor(text: $commentsMarkdown)
+                        .font(.body.monospaced())
+                        .frame(minHeight: 120)
+
+                    if !commentsMarkdown.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        DisclosureGroup("Preview") {
+                            MarkdownPreview(markdown: commentsMarkdown)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.vertical, 6)
+                        }
+                    }
+
+                    Text("Stored inside the reminder notes as a Kando Markdown comments section so it syncs with Apple Reminders.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
 
                 Section("Details") {
@@ -99,6 +120,8 @@ struct TaskEditorSheet: View {
         let draft = ReminderDraft(
             title: title,
             notes: notes,
+            commentsMarkdown: commentsMarkdown,
+            matrixQuadrantId: nil,
             dueDate: hasDueDate ? dueDate : nil,
             priority: priority,
             isCompleted: isCompleted,
@@ -107,5 +130,17 @@ struct TaskEditorSheet: View {
         await onSave(identifier, draft)
         isSaving = false
         dismiss()
+    }
+}
+
+struct MarkdownPreview: View {
+    let markdown: String
+
+    var body: some View {
+        if let attributed = try? AttributedString(markdown: markdown) {
+            Text(attributed)
+        } else {
+            Text(markdown)
+        }
     }
 }

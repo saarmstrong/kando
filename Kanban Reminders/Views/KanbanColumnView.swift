@@ -4,6 +4,7 @@ struct KanbanColumnView: View {
     let column: KanbanColumn
     let tasks: [ReminderTask]
     let allColumns: [KanbanColumn]
+    var shortcutHint: String? = nil
     let onAdd: () -> Void
     let onEdit: (ReminderTask) -> Void
     let onMove: (ReminderTask, String) -> Void
@@ -25,8 +26,19 @@ struct KanbanColumnView: View {
             }
 
             Button(action: onAdd) {
-                Label("Add", systemImage: "plus")
-                    .frame(maxWidth: .infinity)
+                HStack {
+                    Label("Add", systemImage: "plus")
+                    Spacer()
+                    if let shortcutHint {
+                        Text(shortcutHint)
+                            .font(.caption.monospaced().weight(.semibold))
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, 7)
+                            .padding(.vertical, 3)
+                            .background(.thinMaterial, in: Capsule())
+                    }
+                }
+                .frame(maxWidth: .infinity)
             }
             .buttonStyle(.bordered)
 

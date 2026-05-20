@@ -36,6 +36,12 @@ struct TaskCardView: View {
                         .lineLimit(2)
                 }
 
+                if task.hasMarkdownComments {
+                    Label("Markdown comments", systemImage: "text.bubble")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
                 if let dueDate = task.dueDate {
                     Label(dueDate.formatted(date: .abbreviated, time: .omitted), systemImage: "calendar")
                         .font(.caption)
