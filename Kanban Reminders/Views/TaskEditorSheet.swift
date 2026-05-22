@@ -6,6 +6,7 @@ struct TaskEditorSheet: View {
     let onSave: (String?, ReminderDraft) async -> Void
 
     @Environment(\.dismiss) private var dismiss
+    @FocusState private var focusedField: FocusedField?
     @State private var title: String
     @State private var notes: String
     @State private var commentsMarkdown: String
@@ -14,7 +15,14 @@ struct TaskEditorSheet: View {
     @State private var priority: Int
     @State private var isCompleted: Bool
     @State private var columnId: String
+    @State private var isEditingMarkdown = false
     @State private var isSaving = false
+
+    private enum FocusedField {
+        case title
+        case notes
+        case markdown
+    }
 
     init(state: EditorState, columns: [KanbanColumn], onSave: @escaping (String?, ReminderDraft) async -> Void) {
         self.state = state
@@ -46,24 +54,16 @@ struct TaskEditorSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Task") {
+                Section {
                     TextField("Title", text: $title)
+                        .focused($focusedField, equals: .title)
                     TextField("Notes", text: $notes, axis: .vertical)
+                        .focused($focusedField, equals: .notes)
                         .lineLimit(3...6)
                 }
 
                 Section("Markdown Comments") {
-                    TextEditor(text: $commentsMarkdown)
-                        .font(.body.monospaced())
-                        .frame(minHeight: 120)
-
-                    if !commentsMarkdown.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        DisclosureGroup("Preview") {
-                            MarkdownPreview(markdown: commentsMarkdown)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.vertical, 6)
-                        }
-                    }
+                    markdownEditor
 
                     Text("Stored inside the reminder notes as a Kando Markdown comments section so it syncs with Apple Reminders.")
                         .font(.caption)
@@ -92,6 +92,9 @@ struct TaskEditorSheet: View {
                     }
                 }
             }
+            .formStyle(.grouped)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
             .navigationTitle(identifier == nil ? "New Task" : "Edit Task")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
@@ -107,6 +110,46 @@ struct TaskEditorSheet: View {
                     .disabled(isSaving || title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
+            .onChange(of: focusedField) { _, newValue in
+                if newValue != .markdown {
+                    isEditingMarkdown = false
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var markdownEditor: some View {
+        if isEditingMarkdown {
+            TextEditor(text: $commentsMarkdown)
+                .accessibilityIdentifier("MarkdownCommentsEditor")
+                .font(.body.monospaced())
+                .focused($focusedField, equals: .markdown)
+                .frame(minHeight: 160)
+                .padding(8)
+                .background(Color.appCardBackground, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .stroke(.secondary.opacity(0.25), lineWidth: 1)
+                )
+                .onAppear { focusedField = .markdown }
+        } else {
+            Button {
+                isEditingMarkdown = true
+            } label: {
+                MarkdownPreview(markdown: commentsMarkdown)
+                    .accessibilityIdentifier("MarkdownCommentsPreview")
+                    .frame(maxWidth: .infinity, minHeight: 80, alignment: .topLeading)
+                    .padding(12)
+                    .background(Color.appCardBackground, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(.secondary.opacity(0.18), lineWidth: 1)
+                    )
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("MarkdownCommentsPreviewButton")
+            .accessibilityHint("Double tap to edit Markdown comments")
         }
     }
 
@@ -137,10 +180,95 @@ struct MarkdownPreview: View {
     let markdown: String
 
     var body: some View {
-        if let attributed = try? AttributedString(markdown: markdown) {
+        if normalizedMarkdown.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            Text("Click to add Markdown comments…")
+                .foregroundStyle(.secondary)
+                .italic()
+        } else {
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(Array(renderLines.enumerated()), id: \.offset) { _, line in
+                    markdownLine(line)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(accessibilityText)
+            .textSelection(.enabled)
+        }
+    }
+
+    @ViewBuilder
+    private func markdownLine(_ line: String) -> some View {
+        let trimmed = line.trimmingCharacters(in: .whitespaces)
+        if trimmed.isEmpty {
+            Spacer().frame(height: 4)
+        } else if trimmed.hasPrefix("### ") {
+            InlineMarkdownText(markdown: String(trimmed.dropFirst(4)))
+                .font(.headline)
+        } else if trimmed.hasPrefix("## ") {
+            InlineMarkdownText(markdown: String(trimmed.dropFirst(3)))
+                .font(.title3.weight(.semibold))
+        } else if trimmed.hasPrefix("# ") {
+            InlineMarkdownText(markdown: String(trimmed.dropFirst(2)))
+                .font(.title2.weight(.bold))
+        } else if trimmed.hasPrefix("- ") || trimmed.hasPrefix("* ") {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text("•")
+                InlineMarkdownText(markdown: String(trimmed.dropFirst(2)))
+            }
+        } else {
+            InlineMarkdownText(markdown: line)
+        }
+    }
+
+    private var renderLines: [String] {
+        normalizedMarkdown.components(separatedBy: "\n")
+    }
+
+    private var accessibilityText: String {
+        renderLines
+            .map { line in
+                line.trimmingCharacters(in: .whitespaces)
+                    .replacingOccurrences(of: "### ", with: "")
+                    .replacingOccurrences(of: "## ", with: "")
+                    .replacingOccurrences(of: "# ", with: "")
+                    .replacingOccurrences(of: "- ", with: "")
+                    .replacingOccurrences(of: "* ", with: "")
+                    .replacingOccurrences(of: "**", with: "")
+                    .replacingOccurrences(of: "__", with: "")
+                    .replacingOccurrences(of: "`", with: "")
+            }
+            .filter { !$0.isEmpty }
+            .joined(separator: "\n")
+    }
+
+    private var normalizedMarkdown: String {
+        var normalized = markdown
+        normalized = normalized.replacingOccurrences(of: "\\*", with: "*")
+        normalized = normalized.replacingOccurrences(of: "\\_", with: "_")
+        normalized = normalized.replacingOccurrences(of: "\\`", with: "`")
+        normalized = normalized.replacingOccurrences(of: "\\r\\n", with: "\n")
+        normalized = normalized.replacingOccurrences(of: "\\n", with: "\n")
+        return normalized
+    }
+}
+
+private struct InlineMarkdownText: View {
+    let markdown: String
+
+    var body: some View {
+        if let attributed = try? AttributedString(
+            markdown: markdown,
+            options: AttributedString.MarkdownParsingOptions(
+                interpretedSyntax: .inlineOnlyPreservingWhitespace,
+                failurePolicy: .returnPartiallyParsedIfPossible
+            )
+        ) {
             Text(attributed)
+                .fixedSize(horizontal: false, vertical: true)
         } else {
             Text(markdown)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 }

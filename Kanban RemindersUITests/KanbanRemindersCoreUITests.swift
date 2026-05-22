@@ -63,6 +63,44 @@ final class KanbanRemindersCoreUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["UITest New Task"].waitForExistence(timeout: 5))
     }
 
+    func testMarkdownCommentsDefaultToRenderedPreviewAndEditInline() throws {
+        openTab(named: "Kanban")
+
+        guard tapFirstExistingButton(named: "AddTaskButton", fallback: "Add Task") else {
+            throw XCTSkip("Add Task button is not visible; likely running desktop UI tests without UI-test launch arguments.")
+        }
+
+        let titleField = firstTextField(containing: "Title")
+        XCTAssertTrue(titleField.waitForExistence(timeout: 3))
+        titleField.tap()
+        titleField.typeText("UITest Markdown Task")
+
+        let previewButton = app.buttons["MarkdownCommentsPreviewButton"]
+        XCTAssertTrue(previewButton.waitForExistence(timeout: 3), "Markdown comments should default to rendered preview mode")
+        XCTAssertFalse(app.textViews["MarkdownCommentsEditor"].exists, "Markdown editor should not be visible until the rendered preview is tapped")
+
+        previewButton.tap()
+
+        let editor = app.textViews["MarkdownCommentsEditor"]
+        XCTAssertTrue(editor.waitForExistence(timeout: 3), "Tapping the rendered preview should switch to inline Markdown editing")
+        editor.tap()
+        editor.typeText("# Heading")
+        typeNewline()
+        editor.typeText("**Bold comment**")
+        typeNewline()
+        editor.typeText("- item one")
+
+        titleField.tap()
+
+        XCTAssertTrue(previewButton.waitForExistence(timeout: 3), "Moving focus away should return to rendered preview mode")
+        XCTAssertFalse(editor.exists, "Markdown editor should hide after focus leaves it")
+        let renderedPreview = app.buttons["MarkdownCommentsPreviewButton"]
+        XCTAssertTrue(renderedPreview.label.contains("Heading"), "Rendered Markdown should expose the heading text")
+        XCTAssertTrue(renderedPreview.label.contains("Bold comment"), "Rendered Markdown should expose bold text without Markdown delimiters")
+        XCTAssertTrue(renderedPreview.label.contains("item one"), "Rendered Markdown should expose list item text")
+        XCTAssertFalse(renderedPreview.label.contains("**Bold comment**"), "Rendered Markdown should not show raw bold delimiters")
+    }
+
     func testSettingsCanAddColumnAndToggleHideCompleted() throws {
         openTab(named: "Settings")
 
@@ -100,6 +138,14 @@ final class KanbanRemindersCoreUITests: XCTestCase {
             }
             remaining -= 1
         }
+    }
+
+    private func typeNewline() {
+        #if os(macOS)
+        app.typeKey(.return, modifierFlags: [])
+        #else
+        app.typeText("\n")
+        #endif
     }
 
     private func openTab(named name: String) {

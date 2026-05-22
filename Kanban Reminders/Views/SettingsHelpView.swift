@@ -101,7 +101,9 @@ struct SettingsHelpView: View {
                 }
 
                 Section("Tips") {
+                    #if os(iOS)
                     Label("Pull down on a board to refresh.", systemImage: "arrow.clockwise")
+                    #endif
                     Label("Long-press a card to move it between columns or quadrants.", systemImage: "hand.tap")
                     Label("Drag cards between columns on supported devices.", systemImage: "rectangle.and.hand.point.up.left")
                 }
