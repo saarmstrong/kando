@@ -12,6 +12,7 @@ struct KanbanBoardView: View {
     @State private var editor: EditorState?
     @State private var sortOption: TaskSortOption = .title
     @State private var filterOption: TaskFilterOption = .all
+    @State private var collapsedColumnIds: Set<String> = []
     #if os(macOS)
     @State private var isCommandKeyPressed = false
     @State private var commandKeyMonitor: Any?
@@ -65,6 +66,7 @@ struct KanbanBoardView: View {
             .onDisappear { removeCommandKeyMonitor() }
             .onChange(of: columns) { _, newColumns in
                 viewModel.updateColumns(newColumns)
+                collapsedColumnIds.formIntersection(newColumns.map(\.id))
                 Task { await viewModel.load() }
             }
             .task { await viewModel.load() }
@@ -119,32 +121,73 @@ struct KanbanBoardView: View {
     }
 
     private var board: some View {
-        ScrollView([.horizontal, .vertical]) {
-            HStack(alignment: .top, spacing: 16) {
-                ForEach(Array(visibleColumns.enumerated()), id: \.element.id) { index, column in
-                    KanbanColumnView(
-                        column: column,
-                        tasks: tasks(in: column.id),
-                        allColumns: viewModel.columns,
-                        shortcutHint: shortcutHint(forColumnAt: index),
-                        onAdd: { editor = .newTask(in: column.id) },
-                        onEdit: { editor = .edit($0) },
-                        onMove: { task, target in Task { await viewModel.move(task, to: target) } },
-                        onComplete: { task, completed in Task { await viewModel.setCompletion(task, isCompleted: completed) } },
-                        onDropIdentifier: { identifier in
-                            Task { await viewModel.move(identifier: identifier, to: column.id) }
-                        }
-                    )
+        GeometryReader { geometry in
+            ScrollView([.horizontal, .vertical]) {
+                HStack(alignment: .top, spacing: boardColumnSpacing) {
+                    ForEach(Array(visibleColumns.enumerated()), id: \.element.id) { index, column in
+                        KanbanColumnView(
+                            column: column,
+                            tasks: tasks(in: column.id),
+                            allColumns: viewModel.columns,
+                            shortcutHint: shortcutHint(forColumnAt: index),
+                            isCollapsed: collapsedColumnIds.contains(column.id),
+                            expandedWidth: expandedColumnWidth(in: geometry.size.width),
+                            onToggleCollapse: { toggleColumnCollapse(column.id) },
+                            onAdd: { editor = .newTask(in: column.id) },
+                            onEdit: { editor = .edit($0) },
+                            onMove: { task, target in Task { await viewModel.move(task, to: target) } },
+                            onComplete: { task, completed in Task { await viewModel.setCompletion(task, isCompleted: completed) } },
+                            onDropIdentifier: { identifier in
+                                Task { await viewModel.move(identifier: identifier, to: column.id) }
+                            }
+                        )
+                    }
                 }
+                .padding(boardPadding)
+                .frame(minWidth: geometry.size.width, alignment: .center)
             }
-            .padding()
+            .scrollIndicators(.visible)
+            .background(Color.appGroupedBackground)
         }
-        .scrollIndicators(.visible)
-        .background(Color.appGroupedBackground)
     }
 
     private var visibleColumns: [KanbanColumn] {
-        viewModel.columns.filter { !$0.isHidden }
+        viewModel.columns.filter { column in
+            !column.isHidden && (!settings.hideCompletedTasks || !isDoneColumn(column))
+        }
+    }
+
+    private func isDoneColumn(_ column: KanbanColumn) -> Bool {
+        column.id.localizedCaseInsensitiveContains("done") ||
+        column.title.localizedCaseInsensitiveContains("done") ||
+        column.backingReminderListName.localizedCaseInsensitiveContains("done")
+    }
+
+    private let boardColumnSpacing: CGFloat = 16
+    private let boardPadding: CGFloat = 16
+    private let collapsedColumnWidth: CGFloat = 54
+
+    private func expandedColumnWidth(in windowWidth: CGFloat) -> CGFloat {
+        #if os(macOS)
+        let columns = visibleColumns
+        let expandedCount = max(1, columns.filter { !collapsedColumnIds.contains($0.id) }.count)
+        let collapsedCount = columns.count - expandedCount
+        let targetContentWidth = max(0, windowWidth * 0.9 - boardPadding * 2)
+        let totalSpacing = boardColumnSpacing * CGFloat(max(0, columns.count - 1))
+        let totalCollapsedWidth = collapsedColumnWidth * CGFloat(collapsedCount)
+        let availableForExpanded = targetContentWidth - totalSpacing - totalCollapsedWidth
+        return max(220, availableForExpanded / CGFloat(expandedCount))
+        #else
+        return 310
+        #endif
+    }
+
+    private func toggleColumnCollapse(_ columnId: String) {
+        if collapsedColumnIds.contains(columnId) {
+            collapsedColumnIds.remove(columnId)
+        } else {
+            collapsedColumnIds.insert(columnId)
+        }
     }
 
     private var addTaskLabel: String {
@@ -181,8 +224,16 @@ struct KanbanBoardView: View {
     }
 
     private func openNewTask() {
-        if let first = visibleColumns.first {
-            editor = .newTask(in: first.id)
+        if let backlog = backlogColumn ?? visibleColumns.first {
+            editor = .newTask(in: backlog.id)
+        }
+    }
+
+    private var backlogColumn: KanbanColumn? {
+        visibleColumns.first { column in
+            column.id.localizedCaseInsensitiveContains("backlog") ||
+            column.title.localizedCaseInsensitiveContains("backlog") ||
+            column.backingReminderListName.localizedCaseInsensitiveContains("backlog")
         }
     }
 

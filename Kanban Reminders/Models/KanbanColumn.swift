@@ -86,6 +86,12 @@ final class AppSettings: ObservableObject {
     @Published var matrixQuadrants: [KanbanColumn] = KanbanColumn.defaultMatrix { didSet { save() } }
     @Published var matrixAssignments: [String: String] = [:] { didSet { save() } }
     @Published var hideCompletedTasks: Bool = false { didSet { save() } }
+    @Published var verboseLoggingEnabled: Bool = false {
+        didSet {
+            AppLogStore.shared.isVerboseEnabled = verboseLoggingEnabled
+            save()
+        }
+    }
 
     private let defaults = UserDefaults.standard
     private let colorModeKey = "colorMode"
@@ -93,6 +99,7 @@ final class AppSettings: ObservableObject {
     private let matrixQuadrantsKey = "matrixQuadrants"
     private let matrixAssignmentsKey = "matrixAssignments"
     private let hideCompletedTasksKey = "hideCompletedTasks"
+    private let verboseLoggingEnabledKey = "verboseLoggingEnabled"
 
     init() {
         #if DEBUG
@@ -102,6 +109,8 @@ final class AppSettings: ObservableObject {
             matrixQuadrants = KanbanColumn.defaultMatrix
             matrixAssignments = [:]
             hideCompletedTasks = false
+            verboseLoggingEnabled = false
+            AppLogStore.shared.isVerboseEnabled = false
         } else {
             load()
         }
@@ -217,6 +226,8 @@ final class AppSettings: ObservableObject {
             matrixAssignments = decoded
         }
         hideCompletedTasks = defaults.bool(forKey: hideCompletedTasksKey)
+        verboseLoggingEnabled = defaults.bool(forKey: verboseLoggingEnabledKey)
+        AppLogStore.shared.isVerboseEnabled = verboseLoggingEnabled
     }
 
     private func migrateListPrefix(for column: KanbanColumn, viewPrefix: String) -> KanbanColumn {
@@ -242,6 +253,51 @@ final class AppSettings: ObservableObject {
         }
         defaults.set(matrixAssignments, forKey: matrixAssignmentsKey)
         defaults.set(hideCompletedTasks, forKey: hideCompletedTasksKey)
+        defaults.set(verboseLoggingEnabled, forKey: verboseLoggingEnabledKey)
+    }
+}
+
+@MainActor
+final class AppLogStore: ObservableObject {
+    static let shared = AppLogStore()
+
+    @Published private(set) var entries: [String] = []
+    var isVerboseEnabled = false
+
+    private let maxEntries = 250
+    private let timestampFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
+        return formatter
+    }()
+
+    var text: String {
+        entries.joined(separator: "\n")
+    }
+
+    func verbose(_ message: String) {
+        guard isVerboseEnabled else { return }
+        append("VERBOSE", message)
+    }
+
+    func info(_ message: String) {
+        append("INFO", message)
+    }
+
+    func error(_ message: String) {
+        append("ERROR", message)
+    }
+
+    func clear() {
+        entries.removeAll()
+    }
+
+    private func append(_ level: String, _ message: String) {
+        let line = "\(timestampFormatter.string(from: Date())) [\(level)] \(message)"
+        entries.append(line)
+        if entries.count > maxEntries {
+            entries.removeFirst(entries.count - maxEntries)
+        }
     }
 }
 

@@ -1,4 +1,9 @@
 import SwiftUI
+#if os(macOS)
+import AppKit
+#elseif os(iOS)
+import UIKit
+#endif
 
 struct SettingsHelpView: View {
     @EnvironmentObject private var settings: AppSettings
@@ -6,6 +11,7 @@ struct SettingsHelpView: View {
     @State private var newMatrixQuadrant = ""
     @State private var reminderListNames: [String] = []
     @State private var reminderListError: String?
+    @ObservedObject private var logStore = AppLogStore.shared
 
     private let reminderService = ReminderStoreService()
 
@@ -107,6 +113,41 @@ struct SettingsHelpView: View {
                     Label("Long-press a card to move it between columns or quadrants.", systemImage: "hand.tap")
                     Label("Drag cards between columns on supported devices.", systemImage: "rectangle.and.hand.point.up.left")
                 }
+
+                Section("Diagnostics") {
+                    Toggle("Verbose EventKit logging", isOn: $settings.verboseLoggingEnabled)
+                    Text(settings.verboseLoggingEnabled ? "Verbose logging is enabled. Recent Reminders operations are recorded below." : "Verbose logging is off. Only concise errors and important events are recorded.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    if logStore.entries.isEmpty {
+                        Text("No log entries yet.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ScrollView {
+                            Text(logStore.text)
+                                .font(.caption.monospaced())
+                                .textSelection(.enabled)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(8)
+                        }
+                        .frame(minHeight: 140, maxHeight: 260)
+                        .background(Color.appCardBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    }
+
+                    HStack {
+                        Button("Clear Log", role: .destructive) {
+                            logStore.clear()
+                        }
+                        .disabled(logStore.entries.isEmpty)
+
+                        Button("Copy Log") {
+                            copyLogToClipboard()
+                        }
+                        .disabled(logStore.entries.isEmpty)
+                    }
+                }
             }
             #if os(macOS)
             .formStyle(.grouped)
@@ -122,11 +163,21 @@ struct SettingsHelpView: View {
         }
     }
 
+    private func copyLogToClipboard() {
+        #if os(macOS)
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(logStore.text, forType: .string)
+        #elseif os(iOS)
+        UIPasteboard.general.string = logStore.text
+        #endif
+    }
+
     private func loadReminderLists() async {
         do {
             reminderListError = nil
             reminderListNames = try await reminderService.reminderListNames()
         } catch {
+            AppLogStore.shared.error("Load Reminders lists failed: \(error.localizedDescription)")
             reminderListError = error.localizedDescription
         }
     }

@@ -72,12 +72,27 @@ struct TaskEditorSheet: View {
 
                 Section("Details") {
                     Picker("Column", selection: $columnId) {
-                        ForEach(columns) { column in
+                        ForEach(selectableColumns) { column in
                             Text(column.title).tag(column.id)
                         }
                     }
 
-                    Toggle("Completed", isOn: $isCompleted)
+                    Button {
+                        isCompleted.toggle()
+                    } label: {
+                        HStack {
+                            Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
+                                .font(.title3.weight(.semibold))
+                                .foregroundStyle(isCompleted ? .green : .secondary)
+                                .frame(width: 30, height: 30)
+                            Text("Completed")
+                                .foregroundStyle(.primary)
+                            Spacer()
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("CompletedRadioButton")
+                    .accessibilityLabel(isCompleted ? "Mark incomplete" : "Mark complete")
 
                     Toggle("Due Date", isOn: $hasDueDate)
                     if hasDueDate {
@@ -108,6 +123,17 @@ struct TaskEditorSheet: View {
                         Task { await save() }
                     }
                     .disabled(isSaving || title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+            }
+            .onAppear {
+                // New sheets can be opened from a specific column's Add button.
+                // Keep that requested column as the initial destination instead of
+                // letting the Picker/Form fall back to the first column.
+                if case .new(let requestedColumnId, _) = state,
+                   selectableColumns.contains(where: { $0.id == requestedColumnId }) {
+                    columnId = requestedColumnId
+                } else if isDoneColumnId(columnId), let firstSelectable = selectableColumns.first {
+                    columnId = firstSelectable.id
                 }
             }
             .onChange(of: focusedField) { _, newValue in
@@ -156,6 +182,20 @@ struct TaskEditorSheet: View {
     private var identifier: String? {
         if case .edit(let task) = state { return task.reminderIdentifier }
         return nil
+    }
+
+    private var selectableColumns: [KanbanColumn] {
+        columns.filter { !isDoneColumn($0) }
+    }
+
+    private func isDoneColumn(_ column: KanbanColumn) -> Bool {
+        column.id.localizedCaseInsensitiveContains("done") ||
+        column.title.localizedCaseInsensitiveContains("done") ||
+        column.backingReminderListName.localizedCaseInsensitiveContains("done")
+    }
+
+    private func isDoneColumnId(_ columnId: String) -> Bool {
+        columns.first(where: { $0.id == columnId }).map(isDoneColumn) ?? false
     }
 
     private func save() async {

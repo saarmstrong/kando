@@ -6,7 +6,8 @@ final class ReminderTaskSortingFilteringTests: XCTestCase {
         title: String,
         dueDate: Date? = nil,
         priority: Int = 0,
-        isCompleted: Bool = false
+        isCompleted: Bool = false,
+        columnId: String = "backlog"
     ) -> ReminderTask {
         ReminderTask(
             reminderIdentifier: id,
@@ -17,7 +18,7 @@ final class ReminderTaskSortingFilteringTests: XCTestCase {
             dueDate: dueDate,
             priority: priority,
             isCompleted: isCompleted,
-            columnId: "backlog"
+            columnId: columnId
         )
     }
 
@@ -80,6 +81,40 @@ final class ReminderTaskSortingFilteringTests: XCTestCase {
         ]
 
         XCTAssertEqual(tasks.sorted(by: .dueSoonest).map(\.title), ["Tomorrow", "Next Week", "No Date"])
+    }
+
+    func testCompletedTasksAreSortedAfterIncompleteTasks() {
+        let tasks = [
+            task(id: "1", title: "A Completed", isCompleted: true),
+            task(id: "2", title: "B Active"),
+            task(id: "3", title: "C Completed", isCompleted: true),
+            task(id: "4", title: "A Active")
+        ]
+
+        let sorted = tasks.sorted { lhs, rhs in
+            if lhs.isCompleted != rhs.isCompleted { return !lhs.isCompleted }
+            return lhs.title.localizedCaseInsensitiveCompare(rhs.title) == .orderedAscending
+        }
+
+        XCTAssertEqual(sorted.map(\.title), ["A Active", "B Active", "A Completed", "C Completed"])
+    }
+
+    func testCompletedTasksCanBeProjectedIntoDoneColumn() {
+        let tasks = [
+            task(id: "1", title: "Completed in Doing", isCompleted: true, columnId: "doing"),
+            task(id: "2", title: "Active in Doing", isCompleted: false, columnId: "doing")
+        ]
+        let doneColumnId = "done"
+        let normalized = tasks.map { task -> ReminderTask in
+            var copy = task
+            if copy.isCompleted {
+                copy.columnId = doneColumnId
+            }
+            return copy
+        }
+
+        XCTAssertEqual(normalized.first { $0.title == "Completed in Doing" }?.columnId, doneColumnId)
+        XCTAssertEqual(normalized.first { $0.title == "Active in Doing" }?.columnId, "doing")
     }
 
     func testCombinedFilterAndSort() {

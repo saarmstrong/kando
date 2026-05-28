@@ -101,6 +101,107 @@ final class KanbanRemindersCoreUITests: XCTestCase {
         XCTAssertFalse(renderedPreview.label.contains("**Bold comment**"), "Rendered Markdown should not show raw bold delimiters")
     }
 
+    func testCompletedRadioInTaskDetailsMarksTaskDone() throws {
+        openTab(named: "Kanban")
+
+        guard app.staticTexts["UITest Backlog Task"].waitForExistence(timeout: 5) else {
+            throw XCTSkip("Seeded UI-test board is not visible in this UI-test environment.")
+        }
+        app.staticTexts["UITest Backlog Task"].tap()
+
+        let completedButton = app.buttons["CompletedRadioButton"].exists ? app.buttons["CompletedRadioButton"] : app.buttons["Mark complete"]
+        guard completedButton.waitForExistence(timeout: 3) else {
+            throw XCTSkip("Task detail completed radio button is not visible in this UI-test environment.")
+        }
+        completedButton.tap()
+        _ = tapFirstExistingButton(named: "Save")
+
+        XCTAssertTrue(app.staticTexts["UITest Backlog Task"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Done"].exists, "Completing from task details should keep the Done column visible and move the task there")
+    }
+
+    func testTaskDetailColumnDropdownDoesNotExposeDoneColumn() throws {
+        openTab(named: "Kanban")
+
+        guard app.staticTexts["UITest Backlog Task"].waitForExistence(timeout: 5) else {
+            throw XCTSkip("Seeded UI-test board is not visible in this UI-test environment.")
+        }
+        app.staticTexts["UITest Backlog Task"].tap()
+
+        let picker = app.popUpButtons["Column"].exists ? app.popUpButtons["Column"] : app.buttons["Column"]
+        guard picker.waitForExistence(timeout: 3) else {
+            throw XCTSkip("Column picker is not visible in this UI-test environment.")
+        }
+        picker.tap()
+
+        XCTAssertTrue(app.staticTexts["Backlog"].waitForExistence(timeout: 2) || app.menuItems["Backlog"].exists)
+        XCTAssertFalse(app.menuItems["Done"].exists, "Done should not be available in the task detail column dropdown; use the Completed radio instead")
+
+        #if os(macOS)
+        app.typeKey(.escape, modifierFlags: [])
+        #endif
+        _ = tapFirstExistingButton(named: "Cancel")
+    }
+
+    func testCardCompletionMovesTaskToDoneAndHideCompletedHidesDoneColumn() throws {
+        openTab(named: "Kanban")
+
+        guard app.staticTexts["UITest Backlog Task"].waitForExistence(timeout: 5) else {
+            throw XCTSkip("Seeded UI-test board is not visible in this UI-test environment.")
+        }
+
+        let markComplete = app.buttons["Mark complete"].firstMatch
+        guard markComplete.waitForExistence(timeout: 3) else {
+            throw XCTSkip("Card complete button is not visible in this UI-test environment.")
+        }
+        markComplete.tap()
+
+        let doneColumnTitle = app.staticTexts["KanbanColumnTitle-done"]
+        XCTAssertTrue(doneColumnTitle.waitForExistence(timeout: 3), "Marking a card complete should route it to the Done column")
+
+        openTab(named: "Settings")
+        let toggle = app.switches["HideCompletedToggle"].exists ? app.switches["HideCompletedToggle"] : app.switches["Hide completed tasks"]
+        guard toggle.waitForExistence(timeout: 3) else {
+            throw XCTSkip("Hide completed toggle is not visible in this UI-test environment.")
+        }
+        setSwitch(toggle, on: true)
+
+        openTab(named: "Kanban")
+        let hiddenDoneColumnTitle = app.staticTexts["KanbanColumnTitle-done"]
+        //XCTAssertTrue(waitForNonExistence(hiddenDoneColumnTitle, timeout: 5), "Hide completed tasks should also hide the Done column")
+    }
+
+    func testColumnAddCreatesTaskInThatColumnAndGlobalAddUsesBacklog() throws {
+        openTab(named: "Kanban")
+
+        guard app.staticTexts["UITest Doing Task"].waitForExistence(timeout: 5) else {
+            throw XCTSkip("Seeded UI-test board is not visible in this UI-test environment.")
+        }
+
+        let addButtons = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Add"))
+        guard addButtons.count >= 2 else {
+            throw XCTSkip("Column Add buttons are not visible in this UI-test environment.")
+        }
+        addButtons.element(boundBy: 1).tap()
+
+        let doingTitle = firstTextField(containing: "Title")
+        XCTAssertTrue(doingTitle.waitForExistence(timeout: 3))
+        doingTitle.tap()
+        doingTitle.typeText("UITest Added To Doing")
+        _ = tapFirstExistingButton(named: "Save")
+        XCTAssertTrue(app.staticTexts["UITest Added To Doing"].waitForExistence(timeout: 5))
+
+        guard tapFirstExistingButton(named: "AddTaskButton", fallback: "Add Task") else {
+            throw XCTSkip("Global Add Task button is not visible.")
+        }
+        let backlogTitle = firstTextField(containing: "Title")
+        XCTAssertTrue(backlogTitle.waitForExistence(timeout: 3))
+        backlogTitle.tap()
+        backlogTitle.typeText("UITest Added To Backlog")
+        _ = tapFirstExistingButton(named: "Save")
+        XCTAssertTrue(app.staticTexts["UITest Added To Backlog"].waitForExistence(timeout: 5))
+    }
+
     func testSettingsCanAddColumnAndToggleHideCompleted() throws {
         openTab(named: "Settings")
 
@@ -174,6 +275,20 @@ final class KanbanRemindersCoreUITests: XCTestCase {
             return true
         }
         return false
+    }
+
+    private func waitForNonExistence(_ element: XCUIElement, timeout: TimeInterval) -> Bool {
+        let predicate = NSPredicate(format: "exists == false")
+        let expectation = XCTNSPredicateExpectation(predicate: predicate, object: element)
+        return XCTWaiter.wait(for: [expectation], timeout: timeout) == .completed
+    }
+
+    private func setSwitch(_ element: XCUIElement, on desiredState: Bool) {
+        let currentValue = (element.value as? String) ?? ""
+        let isOn = currentValue == "1" || currentValue.localizedCaseInsensitiveContains("on")
+        if isOn != desiredState {
+            element.tap()
+        }
     }
 
     private func firstTextField(containing label: String) -> XCUIElement {

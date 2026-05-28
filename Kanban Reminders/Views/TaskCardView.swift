@@ -15,12 +15,14 @@ struct TaskCardView: View {
                     onComplete(!task.isCompleted)
                 } label: {
                     Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
+                        .font(.title3.weight(.semibold))
                         .foregroundStyle(task.isCompleted ? .green : .secondary)
-                        .frame(width: 28, height: 28)
-                        .contentShape(Rectangle())
+                        .frame(width: 36, height: 36)
+                        .contentShape(Circle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(task.isCompleted ? "Mark incomplete" : "Mark complete")
+                .accessibilityHint("Toggles this reminder's native completed state")
 
                 Text(task.title)
                     .font(.body.weight(.semibold))

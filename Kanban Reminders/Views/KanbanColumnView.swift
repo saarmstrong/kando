@@ -5,6 +5,9 @@ struct KanbanColumnView: View {
     let tasks: [ReminderTask]
     let allColumns: [KanbanColumn]
     var shortcutHint: String? = nil
+    var isCollapsed = false
+    var expandedWidth: CGFloat = 310
+    let onToggleCollapse: () -> Void
     let onAdd: () -> Void
     let onEdit: (ReminderTask) -> Void
     let onMove: (ReminderTask, String) -> Void
@@ -14,17 +17,31 @@ struct KanbanColumnView: View {
     @State private var isDropTargeted = false
 
     var body: some View {
+        Group {
+            if isCollapsed {
+                collapsedColumn
+            } else {
+                expandedColumn
+            }
+        }
+        .animation(.snappy(duration: 0.2), value: isCollapsed)
+    }
+
+    private var expandedColumn: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text(column.title)
                     .font(.headline)
+                    .accessibilityIdentifier("KanbanColumnTitle-\(column.id)")
                 Spacer()
-                Text(countText)
-                    .font(.caption)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(wipStatus.accentColor.opacity(wipStatus == .normal ? 0 : 0.18), in: Capsule())
-                    .foregroundStyle(wipStatus == .normal ? .secondary : wipStatus.accentColor)
+                countBadge
+                Button(action: onToggleCollapse) {
+                    Image(systemName: "sidebar.leading")
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
+                .help("Collapse column")
+                .accessibilityLabel("Collapse \(column.title)")
             }
 
             Button(action: onAdd) {
@@ -71,19 +88,57 @@ struct KanbanColumnView: View {
             Spacer(minLength: 0)
         }
         .padding(12)
-        .frame(width: 310, alignment: .top)
+        .frame(width: expandedWidth, alignment: .top)
         .frame(minHeight: 500, alignment: .top)
-        .background(columnBackground, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .strokeBorder(isDropTargeted ? Color.accentColor : .clear, lineWidth: 3)
-        )
-        .contentShape(Rectangle())
-        .dropDestination(for: String.self, action: { identifiers, _ in
-            guard !identifiers.isEmpty else { return false }
-            identifiers.forEach(onDropIdentifier)
-            return true
-        }, isTargeted: { isDropTargeted = $0 })
+        .columnContainer(background: columnBackground, isDropTargeted: isDropTargeted)
+        .dropDestination(for: String.self, action: handleDrop, isTargeted: { isDropTargeted = $0 })
+    }
+
+    private var collapsedColumn: some View {
+        Button(action: onToggleCollapse) {
+            VStack(spacing: 12) {
+                Image(systemName: "sidebar.trailing")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+
+                Text(column.title)
+                    .font(.headline)
+                    .accessibilityIdentifier("KanbanColumnTitle-\(column.id)")
+                    .lineLimit(1)
+                    .rotationEffect(.degrees(-90))
+                    .fixedSize()
+                    .frame(width: 28, height: 170)
+
+                countBadge
+                    .rotationEffect(.degrees(-90))
+
+                Spacer(minLength: 0)
+            }
+            .padding(.vertical, 14)
+            .frame(width: 54, alignment: .top)
+            .frame(minHeight: 500, alignment: .top)
+            .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .columnContainer(background: columnBackground, isDropTargeted: isDropTargeted)
+        .dropDestination(for: String.self, action: handleDrop, isTargeted: { isDropTargeted = $0 })
+        .help("Expand \(column.title)")
+        .accessibilityLabel("Expand \(column.title), \(countText) tasks")
+    }
+
+    private var countBadge: some View {
+        Text(countText)
+            .font(.caption)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(wipStatus.accentColor.opacity(wipStatus == .normal ? 0 : 0.18), in: Capsule())
+            .foregroundStyle(wipStatus == .normal ? .secondary : wipStatus.accentColor)
+    }
+
+    private func handleDrop(_ identifiers: [String], _ location: CGPoint) -> Bool {
+        guard !identifiers.isEmpty else { return false }
+        identifiers.forEach(onDropIdentifier)
+        return true
     }
 
     private var columnBackground: Color {
@@ -116,6 +171,18 @@ struct KanbanColumnView: View {
         if activeTaskCount >= limit { return .atLimit }
         if activeTaskCount >= max(1, Int(ceil(Double(limit) * 0.8))) { return .nearLimit }
         return .normal
+    }
+}
+
+private extension View {
+    func columnContainer(background: Color, isDropTargeted: Bool) -> some View {
+        self
+            .background(background, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .strokeBorder(isDropTargeted ? Color.accentColor : .clear, lineWidth: 3)
+            )
+            .contentShape(Rectangle())
     }
 }
 

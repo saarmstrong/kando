@@ -49,6 +49,7 @@ final class KanbanBoardViewModel: ObservableObject {
             let latestTasks = try await service.loadBoard(columns: columns)
             tasks = latestTasks
         } catch {
+            logError("Load failed: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
     }
@@ -98,6 +99,7 @@ final class KanbanBoardViewModel: ObservableObject {
             }
             await load()
         } catch {
+            logError("Save task failed: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
     }
@@ -110,10 +112,13 @@ final class KanbanBoardViewModel: ObservableObject {
             if isDoneColumnId(columnId) { tasks[index].isCompleted = true }
             return
         }
+        let previousTasks = tasks
+        applyLocalMove(identifier: task.reminderIdentifier, to: columnId)
         do {
             try await service.moveReminder(identifier: task.reminderIdentifier, to: columnId, columns: columns)
-            await load()
         } catch {
+            tasks = previousTasks
+            logError("Move task failed: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
     }
@@ -136,6 +141,7 @@ final class KanbanBoardViewModel: ObservableObject {
                 tasks[index].matrixQuadrantId = quadrantId
             }
         } catch {
+            logError("Set matrix quadrant failed: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
     }
@@ -151,24 +157,42 @@ final class KanbanBoardViewModel: ObservableObject {
             }
             return
         }
+        let previousTasks = tasks
         do {
             if isCompleted, let doneColumn = doneColumn {
                 // Completing a reminder should also move it to the Done Kanban list so
                 // Apple Reminders and the board stay in sync.
+                applyLocalMove(identifier: task.reminderIdentifier, to: doneColumn.id)
                 try await service.moveReminder(identifier: task.reminderIdentifier, to: doneColumn.id, columns: columns)
             } else {
-                try await service.setCompletion(identifier: task.reminderIdentifier, isCompleted: isCompleted)
+                applyLocalCompletion(identifier: task.reminderIdentifier, isCompleted: false)
+                try await service.setCompletion(identifier: task.reminderIdentifier, isCompleted: false)
 
                 // If a task is uncompleted while it is in Done, place it back into the
                 // first non-Done column instead of leaving it visually completed.
-                if !isCompleted, isDoneColumnId(task.columnId), let fallbackColumn = firstNonDoneColumn {
+                if isDoneColumnId(task.columnId), let fallbackColumn = firstNonDoneColumn {
+                    applyLocalMove(identifier: task.reminderIdentifier, to: fallbackColumn.id)
                     try await service.moveReminder(identifier: task.reminderIdentifier, to: fallbackColumn.id, columns: columns)
                 }
             }
-            await load()
         } catch {
+            tasks = previousTasks
+            logError("Set completion failed: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
+    }
+
+    private func applyLocalMove(identifier: String, to columnId: String) {
+        guard let index = tasks.firstIndex(where: { $0.reminderIdentifier == identifier }) else { return }
+        tasks[index].columnId = columnId
+        if isDoneColumnId(columnId) {
+            tasks[index].isCompleted = true
+        }
+    }
+
+    private func applyLocalCompletion(identifier: String, isCompleted: Bool) {
+        guard let index = tasks.firstIndex(where: { $0.reminderIdentifier == identifier }) else { return }
+        tasks[index].isCompleted = isCompleted
     }
 
     private var doneColumn: KanbanColumn? {
@@ -199,6 +223,10 @@ final class KanbanBoardViewModel: ObservableObject {
 
     func clearError() {
         errorMessage = nil
+    }
+
+    private func logError(_ message: String) {
+        AppLogStore.shared.error(message)
     }
 
     private func sampleUITestTasks() -> [ReminderTask] {

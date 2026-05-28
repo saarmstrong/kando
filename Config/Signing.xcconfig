@@ -1,0 +1,11 @@
+// Shared signing and bundle identifier defaults.
+//
+// Keep this file publishable. Personal App Store / Apple Developer values live in
+// Personal.xcconfig, which is ignored by git and optionally included below.
+
+APP_DEVELOPMENT_TEAM =
+APP_BUNDLE_IDENTIFIER = com.example.KanbanReminders
+UNIT_TEST_BUNDLE_IDENTIFIER = com.example.KanbanRemindersTests
+UI_TEST_BUNDLE_IDENTIFIER = com.example.KanbanRemindersUITests
+
+#include? "Personal.xcconfig"
