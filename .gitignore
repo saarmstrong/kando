@@ -27,7 +27,8 @@ Build/
 .build/
 Package.resolved.backup
 
-# Local signing/build settings, if you add them later
+# Local signing/build settings
+Config/Personal.xcconfig
 Local.xcconfig
 *.local.xcconfig
 

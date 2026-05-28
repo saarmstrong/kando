@@ -41,6 +41,8 @@
 		3E936A8C0A474EACB4E248F7 /* EisenhowerMatrixView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EisenhowerMatrixView.swift; sourceTree = "<group>"; };
 		51E6A996538C4401B0AF535F /* ReminderStoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderStoreService.swift; sourceTree = "<group>"; };
 		5246A8DCCE6B46EE8FEABF03 /* Kanban Reminders.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Kanban Reminders.xctestplan"; sourceTree = "<group>"; };
+		5A17B4E3A9D64F20A5E9C001 /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
+		5A17B4E3A9D64F20A5E9C002 /* Personal.xcconfig.example */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Personal.xcconfig.example; sourceTree = "<group>"; };
 		581A8E158A0942BE82936754 /* ReminderTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderTask.swift; sourceTree = "<group>"; };
 		6089586531564548A07C6492 /* Kanban Reminders.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Kanban Reminders.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		6537DE48F0334035A5DFF976 /* ReminderTaskSortingFilteringTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderTaskSortingFilteringTests.swift; sourceTree = "<group>"; };
@@ -146,9 +148,19 @@
 			path = "Kanban RemindersTests";
 			sourceTree = "<group>";
 		};
+		5A17B4E3A9D64F20A5E9C003 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				5A17B4E3A9D64F20A5E9C001 /* Signing.xcconfig */,
+				5A17B4E3A9D64F20A5E9C002 /* Personal.xcconfig.example */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
 		93643099A3A343429812F62B = {
 			isa = PBXGroup;
 			children = (
+				5A17B4E3A9D64F20A5E9C003 /* Config */,
 				22238FDA395D4783A8A9C57F /* Kanban Reminders */,
 				8FAD64FCAD9D4251987C623D /* Kanban RemindersTests */,
 				6B3F27D86D284298BE645B2F /* Kanban RemindersUITests */,
@@ -335,6 +347,7 @@
 /* Begin XCBuildConfiguration section */
 		2BC5A5CC42CF4BEF96D89D2C /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 5A17B4E3A9D64F20A5E9C001 /* Signing.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = "";
@@ -342,7 +355,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 42P99ST2F8;
+				DEVELOPMENT_TEAM = "$(APP_DEVELOPMENT_TEAM)";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "Kanban Reminders/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Kanban Reminders";
@@ -350,7 +363,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.4;
-				PRODUCT_BUNDLE_IDENTIFIER = com.saarmstrong.tb.kando;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_BUNDLE_IDENTIFIER)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SUPPORTS_MACCATALYST = NO;
@@ -363,6 +376,7 @@
 		};
 		34440291D2EC4DFB89D72E65 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 5A17B4E3A9D64F20A5E9C001 /* Signing.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
@@ -371,7 +385,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.KanbanRemindersTests;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(UNIT_TEST_BUNDLE_IDENTIFIER)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SWIFT_VERSION = 5.0;
@@ -381,6 +395,7 @@
 		};
 		37BD5D5D604940188D4D085A /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 5A17B4E3A9D64F20A5E9C001 /* Signing.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
@@ -389,7 +404,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.KanbanRemindersTests;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(UNIT_TEST_BUNDLE_IDENTIFIER)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SWIFT_VERSION = 5.0;
@@ -399,6 +414,7 @@
 		};
 		8CA80EF9346C4B5D85FAB202 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 5A17B4E3A9D64F20A5E9C001 /* Signing.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
@@ -407,7 +423,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.KanbanRemindersUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(UI_TEST_BUNDLE_IDENTIFIER)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SWIFT_VERSION = 5.0;
@@ -478,6 +494,7 @@
 		};
 		BF8D763E1ACB4A5B8895CA1A /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 5A17B4E3A9D64F20A5E9C001 /* Signing.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
@@ -486,7 +503,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.KanbanRemindersUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(UI_TEST_BUNDLE_IDENTIFIER)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SWIFT_VERSION = 5.0;
@@ -550,6 +567,7 @@
 		};
 		F6C7A072BE7C46448CD24692 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 5A17B4E3A9D64F20A5E9C001 /* Signing.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = "";
@@ -557,7 +575,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 42P99ST2F8;
+				DEVELOPMENT_TEAM = "$(APP_DEVELOPMENT_TEAM)";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "Kanban Reminders/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Kanban Reminders";
@@ -565,7 +583,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.4;
-				PRODUCT_BUNDLE_IDENTIFIER = com.saarmstrong.tb.kando;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_BUNDLE_IDENTIFIER)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SUPPORTS_MACCATALYST = NO;

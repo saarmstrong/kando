@@ -32,8 +32,9 @@ In GitHub, enable Pages from **Settings → Pages → Deploy from a branch**, th
 
 1. Open `Kanban Reminders.xcodeproj` in Xcode 15+.
 2. Select the `Kanban Reminders` target.
-3. Set your development team and replace the example bundle identifier with your own if you want to run on a physical device or distribute/archive the app.
-4. Build and run on iOS 17 or newer, or choose **My Mac** as the run destination for the native macOS 14+ app.
+3. Build and run on iOS 17 or newer, or choose **My Mac** as the run destination for the native macOS 14+ app.
+
+Signing and bundle IDs are read from `Config/Signing.xcconfig`. Public defaults use example identifiers. For local distribution, copy `Config/Personal.xcconfig.example` to `Config/Personal.xcconfig` and set your Apple Developer Team ID and bundle IDs there. `Personal.xcconfig` is ignored by git, and Xcode picks it up automatically through `Signing.xcconfig`.
 
 The project includes the required Reminders privacy usage strings in `Kanban Reminders/Info.plist`. The same SwiftUI target supports iPhone, iPad, and native macOS with shared EventKit/iCloud Reminders data.
 
