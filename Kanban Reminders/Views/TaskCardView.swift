@@ -9,54 +9,63 @@ struct TaskCardView: View {
     let onComplete: (Bool) -> Void
 
     var body: some View {
-        Button(action: onEdit) {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(alignment: .top) {
-                    Button {
-                        onComplete(!task.isCompleted)
-                    } label: {
-                        Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
-                            .foregroundStyle(task.isCompleted ? .green : .secondary)
-                    }
-                    .buttonStyle(.plain)
-
-                    Text(task.title)
-                        .font(.body.weight(.semibold))
-                        .foregroundStyle(.primary)
-                        .strikethrough(task.isCompleted)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
-                    priorityBadge
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .top) {
+                Button {
+                    onComplete(!task.isCompleted)
+                } label: {
+                    Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
+                        .foregroundStyle(task.isCompleted ? .green : .secondary)
+                        .frame(width: 28, height: 28)
+                        .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
+                .accessibilityLabel(task.isCompleted ? "Mark incomplete" : "Mark complete")
 
-                if let notes = task.notes, !notes.isEmpty {
-                    Text(notes)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(2)
-                }
+                Text(task.title)
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(.primary)
+                    .strikethrough(task.isCompleted)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityIdentifier(task.title)
 
-                if task.hasMarkdownComments {
-                    Label("Markdown comments", systemImage: "text.bubble")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                if let dueDate = task.dueDate {
-                    Label(dueDate.formatted(date: .abbreviated, time: .omitted), systemImage: "calendar")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+                priorityBadge
             }
-            .padding(12)
-            .background(Color.appCardBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .stroke(wipAccentColor ?? .clear, lineWidth: wipAccentColor == nil ? 0 : 2)
-            )
-            .shadow(color: .black.opacity(0.06), radius: 5, y: 2)
+
+            if let notes = task.notes, !notes.isEmpty {
+                Text(notes)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+            }
+
+            if task.hasMarkdownComments {
+                Label("Markdown comments", systemImage: "text.bubble")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            if let dueDate = task.dueDate {
+                Label(dueDate.formatted(date: .abbreviated, time: .omitted), systemImage: "calendar")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
-        .buttonStyle(.plain)
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.appCardBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(wipAccentColor ?? .clear, lineWidth: wipAccentColor == nil ? 0 : 2)
+        )
+        .shadow(color: .black.opacity(0.06), radius: 5, y: 2)
+        .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .onTapGesture(perform: onEdit)
+        // Keep child Text views exposed as staticTexts for UI tests and VoiceOver.
+        // Synthesizing the whole card as one Button-like accessibility element can
+        // hide task titles from XCUIElementQuery.staticTexts.
+        .accessibilityElement(children: .contain)
+        .accessibilityAction(named: "Edit", onEdit)
         .contextMenu {
             Button("Edit", systemImage: "pencil", action: onEdit)
             Menu("Move to…") {

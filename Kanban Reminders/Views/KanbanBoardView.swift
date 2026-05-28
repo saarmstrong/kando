@@ -78,6 +78,10 @@ struct KanbanBoardView: View {
                 TaskEditorSheet(state: state, columns: viewModel.columns) { identifier, draft in
                     await viewModel.saveTask(identifier: identifier, draft: draft)
                 }
+                // Force SwiftUI to build a fresh editor every time. Without this,
+                // @State from a previously edited task can be reused when opening
+                // the Add sheet from a column.
+                .id(state.id)
             }
             .alert("Something went wrong", isPresented: Binding(
                 get: { viewModel.errorMessage != nil },

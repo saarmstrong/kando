@@ -345,10 +345,11 @@
 				DEVELOPMENT_TEAM = 42P99ST2F8;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "Kanban Reminders/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Kanban Reminders";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.3;
+				MARKETING_VERSION = 1.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.saarmstrong.tb.kando;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
@@ -559,10 +560,11 @@
 				DEVELOPMENT_TEAM = 42P99ST2F8;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "Kanban Reminders/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Kanban Reminders";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.3;
+				MARKETING_VERSION = 1.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.saarmstrong.tb.kando;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";

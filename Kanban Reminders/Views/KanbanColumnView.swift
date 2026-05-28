@@ -11,6 +11,8 @@ struct KanbanColumnView: View {
     let onComplete: (ReminderTask, Bool) -> Void
     let onDropIdentifier: (String) -> Void
 
+    @State private var isDropTargeted = false
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -52,7 +54,18 @@ struct KanbanColumnView: View {
                         onMove: { onMove(task, $0) },
                         onComplete: { onComplete(task, $0) }
                     )
-                    .draggable(task.reminderIdentifier)
+                    .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .draggable(task.reminderIdentifier) {
+                        TaskCardView(
+                            task: task,
+                            allColumns: allColumns,
+                            wipAccentColor: wipStatus == .normal ? columnColor : wipStatus.accentColor,
+                            onEdit: {},
+                            onMove: { _ in },
+                            onComplete: { _ in }
+                        )
+                        .frame(width: 280)
+                    }
                 }
             }
             Spacer(minLength: 0)
@@ -61,10 +74,16 @@ struct KanbanColumnView: View {
         .frame(width: 310, alignment: .top)
         .frame(minHeight: 500, alignment: .top)
         .background(columnBackground, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .dropDestination(for: String.self) { identifiers, _ in
-            identifiers.first.map(onDropIdentifier)
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .strokeBorder(isDropTargeted ? Color.accentColor : .clear, lineWidth: 3)
+        )
+        .contentShape(Rectangle())
+        .dropDestination(for: String.self, action: { identifiers, _ in
+            guard !identifiers.isEmpty else { return false }
+            identifiers.forEach(onDropIdentifier)
             return true
-        }
+        }, isTargeted: { isDropTargeted = $0 })
     }
 
     private var columnBackground: Color {
