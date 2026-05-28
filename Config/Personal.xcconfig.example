@@ -1,0 +1,7 @@
+// Copy to Personal.xcconfig for local signing/distribution settings.
+// Personal.xcconfig is ignored by git.
+
+APP_DEVELOPMENT_TEAM = YOURTEAMID
+APP_BUNDLE_IDENTIFIER = com.example.KanbanReminders
+UNIT_TEST_BUNDLE_IDENTIFIER = com.example.KanbanRemindersTests
+UI_TEST_BUNDLE_IDENTIFIER = com.example.KanbanRemindersUITests
