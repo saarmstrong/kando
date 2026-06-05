@@ -71,6 +71,7 @@ final class KanbanBoardViewModel: ObservableObject {
                 tasks[index].commentsMarkdown = normalizedDraft.commentsMarkdown
                 tasks[index].matrixQuadrantId = normalizedDraft.matrixQuadrantId
                 tasks[index].dueDate = normalizedDraft.dueDate
+                tasks[index].tags = ReminderTagParser.normalize(normalizedDraft.tags + ReminderTagParser.tags(in: normalizedDraft.title) + ReminderTagParser.tags(in: normalizedDraft.notes) + ReminderTagParser.tags(in: normalizedDraft.commentsMarkdown))
                 tasks[index].priority = normalizedDraft.priority
                 tasks[index].isCompleted = normalizedDraft.isCompleted
                 tasks[index].columnId = normalizedDraft.columnId
@@ -82,6 +83,7 @@ final class KanbanBoardViewModel: ObservableObject {
                     commentsMarkdown: normalizedDraft.commentsMarkdown,
                     matrixQuadrantId: normalizedDraft.matrixQuadrantId,
                     dueDate: normalizedDraft.dueDate,
+                    tags: ReminderTagParser.normalize(normalizedDraft.tags + ReminderTagParser.tags(in: normalizedDraft.title) + ReminderTagParser.tags(in: normalizedDraft.notes) + ReminderTagParser.tags(in: normalizedDraft.commentsMarkdown)),
                     priority: normalizedDraft.priority,
                     isCompleted: normalizedDraft.isCompleted,
                     columnId: normalizedDraft.columnId
@@ -240,6 +242,7 @@ final class KanbanBoardViewModel: ObservableObject {
                 commentsMarkdown: "**Seed** markdown comment",
                 matrixQuadrantId: nil,
                 dueDate: nil,
+                tags: ["seed", "mobile"],
                 priority: 5,
                 isCompleted: false,
                 columnId: backlog
@@ -251,6 +254,7 @@ final class KanbanBoardViewModel: ObservableObject {
                 commentsMarkdown: nil,
                 matrixQuadrantId: nil,
                 dueDate: nil,
+                tags: ["seed", "doing"],
                 priority: 1,
                 isCompleted: false,
                 columnId: doing

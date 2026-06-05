@@ -12,6 +12,7 @@ struct KanbanBoardView: View {
     @State private var editor: EditorState?
     @State private var sortOption: TaskSortOption = .title
     @State private var filterOption: TaskFilterOption = .all
+    @State private var selectedTags: Set<String> = []
     @State private var collapsedColumnIds: Set<String> = []
     #if os(macOS)
     @State private var isCommandKeyPressed = false
@@ -104,20 +105,64 @@ struct KanbanBoardView: View {
                 }
             }
 
+            Menu(tagFilterTitle) {
+                Button { selectedTags.removeAll() } label: {
+                    tagMenuRow("All Tags", isSelected: selectedTags.isEmpty)
+                }
+                ForEach(availableTags, id: \.self) { tag in
+                    Button { toggleTag(tag) } label: {
+                        tagMenuRow("#\(tag)", isSelected: selectedTags.contains(tag))
+                    }
+                    .accessibilityIdentifier("TagFilter-\(tag)")
+                }
+            }
+            .accessibilityIdentifier("TagFilterMenu")
+
             Picker("Sort", selection: $sortOption) {
                 ForEach(TaskSortOption.allCases) { option in
                     Text(option.title).tag(option)
                 }
             }
         } label: {
-            Label("Sort and Filter", systemImage: "line.3.horizontal.decrease.circle")
+            Label(selectedTags.isEmpty ? "Sort and Filter" : "Filtered: \(selectedTagSummary)", systemImage: "line.3.horizontal.decrease.circle")
+        }
+    }
+
+    private var tagFilterTitle: String {
+        selectedTags.isEmpty ? "Tags: All Tags" : "Tags: \(selectedTagSummary)"
+    }
+
+    private var selectedTagSummary: String {
+        selectedTags.sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+            .map { "#\($0)" }
+            .joined(separator: ", ")
+    }
+
+    private func toggleTag(_ tag: String) {
+        if selectedTags.contains(tag) {
+            selectedTags.remove(tag)
+        } else {
+            selectedTags.insert(tag)
+        }
+    }
+
+    @ViewBuilder
+    private func tagMenuRow(_ title: String, isSelected: Bool) -> some View {
+        if isSelected {
+            Label(title, systemImage: "checkmark")
+        } else {
+            Text(title)
         }
     }
 
     private func tasks(in columnId: String) -> [ReminderTask] {
         viewModel.tasks(in: columnId)
             .filter { !settings.hideCompletedTasks || !$0.isCompleted }
-            .filteredAndSorted(filter: filterOption, sort: sortOption)
+            .filteredAndSorted(filter: filterOption, tags: selectedTags, sort: sortOption)
+    }
+
+    private var availableTags: [String] {
+        viewModel.tasks.availableTags
     }
 
     private var board: some View {

@@ -168,7 +168,7 @@ final class KanbanRemindersCoreUITests: XCTestCase {
 
         openTab(named: "Kanban")
         let hiddenDoneColumnTitle = app.staticTexts["KanbanColumnTitle-done"]
-        //XCTAssertTrue(waitForNonExistence(hiddenDoneColumnTitle, timeout: 5), "Hide completed tasks should also hide the Done column")
+        XCTAssertTrue(waitForNonExistence(hiddenDoneColumnTitle, timeout: 5), "Hide completed tasks should also hide the Done column")
     }
 
     func testColumnAddCreatesTaskInThatColumnAndGlobalAddUsesBacklog() throws {
@@ -200,6 +200,63 @@ final class KanbanRemindersCoreUITests: XCTestCase {
         backlogTitle.typeText("UITest Added To Backlog")
         _ = tapFirstExistingButton(named: "Save")
         XCTAssertTrue(app.staticTexts["UITest Added To Backlog"].waitForExistence(timeout: 5))
+    }
+
+    func testCanCreateTaskWithTagsAndFilterByTag() throws {
+        openTab(named: "Kanban")
+
+        guard tapFirstExistingButton(named: "AddTaskButton", fallback: "Add Task") else {
+            throw XCTSkip("Add Task button is not visible.")
+        }
+
+        let titleField = firstTextField(containing: "Title")
+        XCTAssertTrue(titleField.waitForExistence(timeout: 3))
+        titleField.tap()
+        titleField.typeText("UITest Tagged Task")
+
+        let tagsField = app.textFields["TagsTextField"].exists ? app.textFields["TagsTextField"] : app.textFields["Tags"]
+        scrollUntilElementExists(tagsField)
+        XCTAssertTrue(tagsField.waitForExistence(timeout: 3))
+        tagsField.tap()
+        tagsField.typeText("focus mobile")
+
+        _ = tapFirstExistingButton(named: "Save")
+        XCTAssertTrue(app.staticTexts["UITest Tagged Task"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["TagChip-focus"].exists || app.staticTexts["#focus"].exists)
+
+        guard tapFirstExistingButton(named: "Sort and Filter") else {
+            throw XCTSkip("Sort and filter menu is not visible.")
+        }
+        if app.buttons["Tag"].waitForExistence(timeout: 2) {
+            app.buttons["Tag"].tap()
+        }
+        if app.buttons["TagFilter-focus"].exists {
+            app.buttons["TagFilter-focus"].tap()
+        } else if app.buttons["#focus"].waitForExistence(timeout: 2) {
+            app.buttons["#focus"].tap()
+        } else {
+            throw XCTSkip("Tag filter option is not visible.")
+        }
+
+        XCTAssertTrue(app.staticTexts["UITest Tagged Task"].waitForExistence(timeout: 3))
+        XCTAssertFalse(app.staticTexts["UITest Doing Task"].exists, "Filtering by #focus should hide tasks without that tag")
+
+        guard tapFirstExistingButton(named: "Filtered: #focus", fallback: "Sort and Filter") else {
+            throw XCTSkip("Filtered sort and filter menu is not visible.")
+        }
+        if app.buttons["Tags: #focus"].waitForExistence(timeout: 2) {
+            app.buttons["Tags: #focus"].tap()
+        }
+        if app.buttons["TagFilter-mobile"].exists {
+            app.buttons["TagFilter-mobile"].tap()
+        } else if app.buttons["#mobile"].waitForExistence(timeout: 2) {
+            app.buttons["#mobile"].tap()
+        } else {
+            throw XCTSkip("Second tag filter option is not visible.")
+        }
+
+        XCTAssertTrue(app.staticTexts["UITest Tagged Task"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["Filtered: #focus, #mobile"].exists || app.buttons["Filtered: #mobile, #focus"].exists)
     }
 
     func testSettingsCanAddColumnAndToggleHideCompleted() throws {

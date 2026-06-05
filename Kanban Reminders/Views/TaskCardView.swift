@@ -47,6 +47,10 @@ struct TaskCardView: View {
                     .foregroundStyle(.secondary)
             }
 
+            if !task.normalizedTags.isEmpty {
+                TagChips(tags: task.normalizedTags)
+            }
+
             if let dueDate = task.dueDate {
                 Label(dueDate.formatted(date: .abbreviated, time: .omitted), systemImage: "calendar")
                     .font(.caption)
@@ -107,5 +111,24 @@ struct TaskCardView: View {
         case 9: return .red
         default: return .secondary
         }
+    }
+}
+
+struct TagChips: View {
+    let tags: [String]
+
+    var body: some View {
+        HStack(spacing: 5) {
+            ForEach(tags, id: \.self) { tag in
+                Text("#\(tag)")
+                    .font(.caption2.weight(.semibold))
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3)
+                    .background(Color.accentColor.opacity(0.12), in: Capsule())
+                    .foregroundStyle(Color.accentColor)
+                    .accessibilityIdentifier("TagChip-\(tag)")
+            }
+        }
+        .lineLimit(1)
     }
 }

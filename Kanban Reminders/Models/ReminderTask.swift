@@ -7,6 +7,7 @@ struct ReminderTask: Identifiable, Hashable {
     var commentsMarkdown: String?
     var matrixQuadrantId: String?
     var dueDate: Date?
+    var tags: [String] = []
     var priority: Int
     var isCompleted: Bool
     var columnId: String
@@ -19,6 +20,28 @@ struct ReminderTask: Identifiable, Hashable {
 
     var trimmedMarkdownComments: String? {
         commentsMarkdown?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+    }
+
+    var normalizedTags: [String] {
+        ReminderTagParser.normalize(tags + ReminderTagParser.tags(in: title) + ReminderTagParser.tags(in: notes) + ReminderTagParser.tags(in: commentsMarkdown))
+    }
+}
+
+struct ReminderTagParser {
+    static func tags(in text: String?) -> [String] {
+        guard let text, !text.isEmpty else { return [] }
+        let pattern = #"(?<![\p{L}\p{N}_])#([\p{L}\p{N}][\p{L}\p{N}_-]*)"#
+        guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
+        let nsRange = NSRange(text.startIndex..<text.endIndex, in: text)
+        return normalize(regex.matches(in: text, range: nsRange).compactMap { match in
+            guard let range = Range(match.range(at: 1), in: text) else { return nil }
+            return String(text[range])
+        })
+    }
+
+    static func normalize(_ tags: [String]) -> [String] {
+        Array(Set(tags.map { $0.trimmingCharacters(in: CharacterSet(charactersIn: "# ").union(.whitespacesAndNewlines)).lowercased() }.filter { !$0.isEmpty }))
+            .sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
     }
 }
 
@@ -203,7 +226,26 @@ extension Array where Element == ReminderTask {
         }
     }
 
-    func filteredAndSorted(filter: TaskFilterOption, sort: TaskSortOption) -> [ReminderTask] {
-        filtered(filter).sorted(by: sort)
+    func filtered(byTag tag: String?) -> [ReminderTask] {
+        guard let tag = tag?.trimmingCharacters(in: CharacterSet(charactersIn: "# ").union(.whitespacesAndNewlines)).lowercased(), !tag.isEmpty else { return self }
+        return filtered(byTags: [tag])
+    }
+
+    func filtered(byTags tags: Set<String>) -> [ReminderTask] {
+        let selectedTags = Set(ReminderTagParser.normalize(tags.map { $0 }))
+        guard !selectedTags.isEmpty else { return self }
+        return filter { task in selectedTags.allSatisfy { task.normalizedTags.contains($0) } }
+    }
+
+    var availableTags: [String] {
+        ReminderTagParser.normalize(flatMap(\.normalizedTags))
+    }
+
+    func filteredAndSorted(filter: TaskFilterOption, tag: String? = nil, sort: TaskSortOption) -> [ReminderTask] {
+        filtered(filter).filtered(byTag: tag).sorted(by: sort)
+    }
+
+    func filteredAndSorted(filter: TaskFilterOption, tags: Set<String>, sort: TaskSortOption) -> [ReminderTask] {
+        filtered(filter).filtered(byTags: tags).sorted(by: sort)
     }
 }

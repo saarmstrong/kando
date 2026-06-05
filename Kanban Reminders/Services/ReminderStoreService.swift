@@ -23,6 +23,7 @@ struct ReminderDraft: Equatable {
     var commentsMarkdown: String?
     var matrixQuadrantId: String?
     var dueDate: Date?
+    var tags: [String] = []
     var priority: Int
     var isCompleted: Bool
     var columnId: String
@@ -267,11 +268,14 @@ final class ReminderStoreService {
     }
 
     private func apply(draft: ReminderDraft, to reminder: EKReminder) {
-        reminder.title = draft.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Untitled Task" : draft.title
+        let selectedTags = ReminderTagParser.normalize(draft.tags)
+        let cleanTitle = (textByRemovingUnselectedHashtags(draft.title, keeping: selectedTags) ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        reminder.title = cleanTitle.isEmpty ? "Untitled Task" : cleanTitle
         let existingContent = ReminderContentCodec.splitNotesAndComments(reminder.notes)
         reminder.notes = ReminderContentCodec.combinedNotes(
-            notes: draft.notes,
-            commentsMarkdown: draft.commentsMarkdown,
+            notes: notesWithTags(draft.notes, tags: selectedTags),
+            commentsMarkdown: textByRemovingUnselectedHashtags(draft.commentsMarkdown, keeping: selectedTags),
             matrixQuadrantId: draft.matrixQuadrantId ?? existingContent.matrixQuadrantId
         )
         reminder.priority = draft.priority
@@ -282,6 +286,39 @@ final class ReminderStoreService {
         } else {
             reminder.dueDateComponents = nil
         }
+    }
+
+    private func notesWithTags(_ notes: String?, tags: [String]) -> String? {
+        let normalizedTags = ReminderTagParser.normalize(tags)
+        let cleanNotes = textByRemovingUnselectedHashtags(notes, keeping: normalizedTags)?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard !normalizedTags.isEmpty else { return cleanNotes.nilIfEmpty }
+        let existingTags = ReminderTagParser.tags(in: cleanNotes)
+        let missingTags = normalizedTags.filter { !existingTags.contains($0) }
+        guard !missingTags.isEmpty else { return cleanNotes.nilIfEmpty }
+        let tagLine = missingTags.map { "#\($0)" }.joined(separator: " ")
+        return cleanNotes.isEmpty ? tagLine : "\(cleanNotes)\n\n\(tagLine)"
+    }
+
+    private func textByRemovingUnselectedHashtags(_ text: String?, keeping selectedTags: [String]) -> String? {
+        guard let text, !text.isEmpty else { return nil }
+        let selectedTags = Set(ReminderTagParser.normalize(selectedTags))
+        let pattern = #"(?<![\p{L}\p{N}_])#([\p{L}\p{N}][\p{L}\p{N}_-]*)"#
+        guard let regex = try? NSRegularExpression(pattern: pattern) else { return text }
+        var result = text
+        let matches = regex.matches(in: text, range: NSRange(text.startIndex..<text.endIndex, in: text)).reversed()
+        for match in matches {
+            guard let tagRange = Range(match.range(at: 1), in: text),
+                  let fullRange = Range(match.range(at: 0), in: result) else { continue }
+            let tag = ReminderTagParser.normalize([String(text[tagRange])]).first ?? ""
+            if !selectedTags.contains(tag) {
+                result.removeSubrange(fullRange)
+            }
+        }
+        return result
+            .replacingOccurrences(of: "  ", with: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .nilIfEmpty
     }
 
     private func logVerbose(_ message: String) {
@@ -313,9 +350,14 @@ final class ReminderStoreService {
             commentsMarkdown: content.commentsMarkdown,
             matrixQuadrantId: content.matrixQuadrantId,
             dueDate: reminder.dueDateComponents?.date,
+            tags: ReminderTagParser.normalize(ReminderTagParser.tags(in: reminder.title) + ReminderTagParser.tags(in: content.notes) + ReminderTagParser.tags(in: content.commentsMarkdown)),
             priority: reminder.priority,
             isCompleted: reminder.isCompleted,
             columnId: column.id
         )
     }
+}
+
+private extension String {
+    var nilIfEmpty: String? { isEmpty ? nil : self }
 }

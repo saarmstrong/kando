@@ -6,6 +6,7 @@ final class ReminderTaskSortingFilteringTests: XCTestCase {
         title: String,
         dueDate: Date? = nil,
         priority: Int = 0,
+        tags: [String] = [],
         isCompleted: Bool = false,
         columnId: String = "backlog"
     ) -> ReminderTask {
@@ -16,6 +17,7 @@ final class ReminderTaskSortingFilteringTests: XCTestCase {
             commentsMarkdown: nil,
             matrixQuadrantId: nil,
             dueDate: dueDate,
+            tags: tags,
             priority: priority,
             isCompleted: isCompleted,
             columnId: columnId
@@ -115,6 +117,53 @@ final class ReminderTaskSortingFilteringTests: XCTestCase {
 
         XCTAssertEqual(normalized.first { $0.title == "Completed in Doing" }?.columnId, doneColumnId)
         XCTAssertEqual(normalized.first { $0.title == "Active in Doing" }?.columnId, "doing")
+    }
+
+    func testExtractsHashtagTagsFromReminderContent() {
+        var tagged = task(id: "1", title: "Call client #Work", tags: ["Urgent"])
+        tagged.notes = "Follow up for #client-success"
+        tagged.commentsMarkdown = "Discuss #work plan"
+
+        XCTAssertEqual(tagged.normalizedTags, ["client-success", "urgent", "work"])
+    }
+
+    func testNormalizesTagsWithOrWithoutHashmark() {
+        XCTAssertEqual(ReminderTagParser.normalize(["#Work", "home", " work "]), ["home", "work"])
+    }
+
+    func testFiltersTasksByTag() {
+        let tasks = [
+            task(id: "1", title: "Design", tags: ["work"]),
+            task(id: "2", title: "Groceries", tags: ["home"]),
+            task(id: "3", title: "No Tag")
+        ]
+
+        XCTAssertEqual(tasks.filtered(byTag: "#WORK").map(\.title), ["Design"])
+        XCTAssertEqual(tasks.availableTags, ["home", "work"])
+    }
+
+    func testFiltersTasksByMultipleSelectedTags() {
+        let tasks = [
+            task(id: "1", title: "Work Mobile", tags: ["work", "mobile"]),
+            task(id: "2", title: "Work Desktop", tags: ["work", "desktop"]),
+            task(id: "3", title: "Mobile Personal", tags: ["mobile", "home"])
+        ]
+
+        XCTAssertEqual(tasks.filtered(byTags: ["work", "mobile"]).map(\.title), ["Work Mobile"])
+    }
+
+    func testCombinedFilterTagAndSort() {
+        let tasks = [
+            task(id: "1", title: "B", priority: 1, tags: ["work"]),
+            task(id: "2", title: "A", priority: 9, tags: ["home"]),
+            task(id: "3", title: "C", priority: 5, tags: ["work"]),
+            task(id: "4", title: "None", priority: 0, tags: ["work"])
+        ]
+
+        XCTAssertEqual(
+            tasks.filteredAndSorted(filter: .hasPriority, tag: "work", sort: .title).map(\.title),
+            ["B", "C"]
+        )
     }
 
     func testCombinedFilterAndSort() {

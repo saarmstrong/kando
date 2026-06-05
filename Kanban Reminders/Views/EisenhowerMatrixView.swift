@@ -6,6 +6,7 @@ struct EisenhowerMatrixView: View {
     @State private var detailTask: ReminderTask?
     @State private var sortOption: TaskSortOption = .priorityHighToLow
     @State private var filterOption: TaskFilterOption = .all
+    @State private var selectedTags: Set<String> = []
 
     private let grid = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
 
@@ -58,14 +59,58 @@ struct EisenhowerMatrixView: View {
                 }
             }
 
+            Menu(tagFilterTitle) {
+                Button { selectedTags.removeAll() } label: {
+                    tagMenuRow("All Tags", isSelected: selectedTags.isEmpty)
+                }
+                ForEach(availableTags, id: \.self) { tag in
+                    Button { toggleTag(tag) } label: {
+                        tagMenuRow("#\(tag)", isSelected: selectedTags.contains(tag))
+                    }
+                    .accessibilityIdentifier("MatrixTagFilter-\(tag)")
+                }
+            }
+            .accessibilityIdentifier("MatrixTagFilterMenu")
+
             Picker("Sort", selection: $sortOption) {
                 ForEach(TaskSortOption.allCases) { option in
                     Text(option.title).tag(option)
                 }
             }
         } label: {
-            Label("Sort and Filter", systemImage: "line.3.horizontal.decrease.circle")
+            Label(selectedTags.isEmpty ? "Sort and Filter" : "Filtered: \(selectedTagSummary)", systemImage: "line.3.horizontal.decrease.circle")
         }
+    }
+
+    private var tagFilterTitle: String {
+        selectedTags.isEmpty ? "Tags: All Tags" : "Tags: \(selectedTagSummary)"
+    }
+
+    private var selectedTagSummary: String {
+        selectedTags.sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+            .map { "#\($0)" }
+            .joined(separator: ", ")
+    }
+
+    private func toggleTag(_ tag: String) {
+        if selectedTags.contains(tag) {
+            selectedTags.remove(tag)
+        } else {
+            selectedTags.insert(tag)
+        }
+    }
+
+    @ViewBuilder
+    private func tagMenuRow(_ title: String, isSelected: Bool) -> some View {
+        if isSelected {
+            Label(title, systemImage: "checkmark")
+        } else {
+            Text(title)
+        }
+    }
+
+    private var availableTags: [String] {
+        viewModel.tasks.filter { !$0.isCompleted }.availableTags
     }
 
     private var matrix: some View {
@@ -102,7 +147,7 @@ struct EisenhowerMatrixView: View {
         viewModel.tasks
             .filter { !$0.isCompleted }
             .filter { settings.quadrantId(for: $0) == quadrant.id }
-            .filteredAndSorted(filter: filterOption, sort: sortOption)
+            .filteredAndSorted(filter: filterOption, tags: selectedTags, sort: sortOption)
     }
 }
 
@@ -202,6 +247,9 @@ struct MatrixTaskSummaryCard: View {
                 if task.hasMarkdownComments {
                     Label("Comments", systemImage: "text.bubble")
                 }
+                ForEach(task.normalizedTags.prefix(2), id: \.self) { tag in
+                    Text("#\(tag)")
+                }
             }
             .font(.caption2)
             .foregroundStyle(.secondary)
@@ -244,6 +292,9 @@ struct MatrixTaskDetailView: View {
                             MarkdownPreview(markdown: comments)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
+                    }
+                    if !task.normalizedTags.isEmpty {
+                        TagChips(tags: task.normalizedTags)
                     }
                     if let dueDate = task.dueDate {
                         Label(dueDate.formatted(date: .abbreviated, time: .shortened), systemImage: "calendar")

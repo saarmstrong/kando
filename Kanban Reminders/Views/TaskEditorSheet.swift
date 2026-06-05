@@ -12,6 +12,7 @@ struct TaskEditorSheet: View {
     @State private var commentsMarkdown: String
     @State private var hasDueDate: Bool
     @State private var dueDate: Date
+    @State private var tagsText: String
     @State private var priority: Int
     @State private var isCompleted: Bool
     @State private var columnId: String
@@ -36,6 +37,7 @@ struct TaskEditorSheet: View {
             _commentsMarkdown = State(initialValue: "")
             _hasDueDate = State(initialValue: false)
             _dueDate = State(initialValue: Date())
+            _tagsText = State(initialValue: "")
             _priority = State(initialValue: 0)
             _isCompleted = State(initialValue: false)
             _columnId = State(initialValue: columnId)
@@ -45,6 +47,7 @@ struct TaskEditorSheet: View {
             _commentsMarkdown = State(initialValue: task.commentsMarkdown ?? "")
             _hasDueDate = State(initialValue: task.dueDate != nil)
             _dueDate = State(initialValue: task.dueDate ?? Date())
+            _tagsText = State(initialValue: task.normalizedTags.joined(separator: " "))
             _priority = State(initialValue: task.priority)
             _isCompleted = State(initialValue: task.isCompleted)
             _columnId = State(initialValue: task.columnId)
@@ -93,6 +96,13 @@ struct TaskEditorSheet: View {
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("CompletedRadioButton")
                     .accessibilityLabel(isCompleted ? "Mark incomplete" : "Mark complete")
+
+                    TextField("Tags", text: $tagsText)
+                        .autocorrectionDisabled()
+                        .accessibilityIdentifier("TagsTextField")
+                    Text("Type tags separated by spaces or commas, e.g. work home. Kando saves them as native Reminders-style hashtags in the reminder notes.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
 
                     Toggle("Due Date", isOn: $hasDueDate)
                     if hasDueDate {
@@ -198,6 +208,10 @@ struct TaskEditorSheet: View {
         columns.first(where: { $0.id == columnId }).map(isDoneColumn) ?? false
     }
 
+    private var parsedTags: [String] {
+        ReminderTagParser.normalize(tagsText.split(whereSeparator: { $0 == "," || $0 == " " || $0 == "\n" || $0 == "\t" }).map(String.init))
+    }
+
     private func save() async {
         isSaving = true
         let draft = ReminderDraft(
@@ -206,6 +220,7 @@ struct TaskEditorSheet: View {
             commentsMarkdown: commentsMarkdown,
             matrixQuadrantId: nil,
             dueDate: hasDueDate ? dueDate : nil,
+            tags: parsedTags,
             priority: priority,
             isCompleted: isCompleted,
             columnId: columnId
